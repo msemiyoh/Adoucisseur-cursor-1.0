@@ -41,6 +41,7 @@ const cardTitleColor = '#90caf9'; // bleu clair pour titres de card
 
 const pages = [
   { label: 'Tableau de bord', icon: <DashboardIcon />, key: 'dashboard' },
+  { label: 'Interventions', icon: <HistoryIcon />, key: 'interventions' },
   { label: 'Paramètres', icon: <SettingsIcon />, key: 'parametres' },
   { label: 'Historique', icon: <HistoryIcon />, key: 'historique' },
   { label: 'Alertes', icon: <NotificationsIcon />, key: 'alertes' },
@@ -50,6 +51,37 @@ const pages = [
 
 // État global de l'application
 const AppContext = React.createContext();
+
+// Types d'interventions étendus
+const TYPES_INTERVENTIONS = [
+  { value: 'Remplissage', label: 'Remplissage de sel', icon: '🧂', couleur: '#4caf50' },
+  { value: 'Regeneration', label: 'Régénération', icon: '🔄', couleur: '#2196f3' },
+  { value: 'Maintenance', label: 'Maintenance préventive', icon: '🔧', couleur: '#ff9800' },
+  { value: 'Entretien', label: 'Entretien général', icon: '🧹', couleur: '#9c27b0' },
+  { value: 'Depannage', label: 'Dépannage', icon: '⚠️', couleur: '#f44336' },
+  { value: 'Inspection', label: 'Inspection technique', icon: '🔍', couleur: '#607d8b' },
+  { value: 'Nettoyage', label: 'Nettoyage bac à sel', icon: '💧', couleur: '#00bcd4' },
+  { value: 'Changement', label: 'Changement résine', icon: '🔄', couleur: '#795548' },
+  { value: 'Calibration', label: 'Calibration', icon: '⚖️', couleur: '#e91e63' },
+  { value: 'Test', label: 'Test de fonctionnement', icon: '🧪', couleur: '#3f51b5' }
+];
+
+// Priorités d'interventions
+const PRIORITES = [
+  { value: 'Basse', label: 'Basse', couleur: '#4caf50' },
+  { value: 'Normale', label: 'Normale', couleur: '#ff9800' },
+  { value: 'Haute', label: 'Haute', couleur: '#f44336' },
+  { value: 'Urgente', label: 'Urgente', couleur: '#d32f2f' }
+];
+
+// États d'interventions
+const ETATS_INTERVENTIONS = [
+  { value: 'Planifiee', label: 'Planifiée', couleur: '#2196f3' },
+  { value: 'EnCours', label: 'En cours', couleur: '#ff9800' },
+  { value: 'Terminee', label: 'Terminée', couleur: '#4caf50' },
+  { value: 'Annulee', label: 'Annulée', couleur: '#9e9e9e' },
+  { value: 'Reportee', label: 'Reportée', couleur: '#607d8b' }
+];
 
 function AppProvider({ children }) {
   const [parametres, setParametres] = React.useState({
@@ -133,6 +165,132 @@ function AppProvider({ children }) {
     }
   ]);
 
+  // État étendu pour les interventions
+  const [interventions, setInterventions] = React.useState([
+    {
+      id: 1,
+      date: '2024-06-12',
+      type: 'Regeneration',
+      priorite: 'Normale',
+      etat: 'Terminee',
+      detail: 'Régénération automatique programmée',
+      operation: 'Consommation',
+      quantite: 2.5,
+      technicien: 'Système automatique',
+      duree: 120,
+      cout: 0,
+      commentaires: 'Régénération normale, tout fonctionne correctement',
+      photos: [],
+      prochaineIntervention: '2024-06-19'
+    },
+    {
+      id: 2,
+      date: '2024-05-01',
+      type: 'Maintenance',
+      priorite: 'Haute',
+      etat: 'Terminee',
+      detail: 'Changement de la résine',
+      operation: 'Maintenance',
+      quantite: 0,
+      technicien: 'Technicien spécialisé',
+      duree: 240,
+      cout: 150,
+      commentaires: 'Résine changée, système recalibré',
+      photos: [],
+      prochaineIntervention: '2025-05-01'
+    },
+    {
+      id: 3,
+      date: '2024-04-15',
+      type: 'Remplissage',
+      priorite: 'Normale',
+      etat: 'Terminee',
+      detail: 'Ajout de sel dans le bac',
+      operation: 'Ajout',
+      quantite: 25,
+      technicien: 'Utilisateur',
+      duree: 15,
+      cout: 0,
+      commentaires: 'Bac rempli aux 3/4',
+      photos: [],
+      prochaineIntervention: '2024-05-15'
+    },
+    {
+      id: 4,
+      date: '2024-04-01',
+      type: 'Nettoyage',
+      priorite: 'Basse',
+      etat: 'Terminee',
+      detail: 'Nettoyage du bac à sel',
+      operation: 'Entretien',
+      quantite: 0,
+      technicien: 'Utilisateur',
+      duree: 45,
+      cout: 0,
+      commentaires: 'Bac nettoyé, sel restant conservé',
+      photos: [],
+      prochaineIntervention: '2024-07-01'
+    }
+  ]);
+
+  // Interventions planifiées
+  const [interventionsPlanifiees, setInterventionsPlanifiees] = React.useState([
+    {
+      id: 5,
+      date: '2024-06-19',
+      type: 'Remplissage',
+      priorite: 'Normale',
+      etat: 'Planifiee',
+      detail: 'Remplissage préventif du bac à sel',
+      operation: 'Ajout',
+      quantite: 20,
+      technicien: 'Utilisateur',
+      duree: 15,
+      cout: 0,
+      commentaires: 'Remplissage préventif',
+      photos: [],
+      rappel: true,
+      rappelDate: '2024-06-18'
+    },
+    {
+      id: 6,
+      date: '2024-07-01',
+      type: 'Inspection',
+      priorite: 'Basse',
+      etat: 'Planifiee',
+      detail: 'Inspection trimestrielle',
+      operation: 'Inspection',
+      quantite: 0,
+      technicien: 'Technicien',
+      duree: 60,
+      cout: 50,
+      commentaires: 'Inspection de routine',
+      photos: [],
+      rappel: true,
+      rappelDate: '2024-06-30'
+    }
+  ]);
+
+  // Notifications
+  const [notifications, setNotifications] = React.useState([
+    {
+      id: 1,
+      type: 'Rappel',
+      message: 'Intervention planifiée demain : Remplissage du bac à sel',
+      date: '2024-06-18',
+      lue: false,
+      priorite: 'Normale'
+    },
+    {
+      id: 2,
+      type: 'Alerte',
+      message: 'Niveau de sel bas (15%) - Remplissage recommandé',
+      date: '2024-06-15',
+      lue: true,
+      priorite: 'Haute'
+    }
+  ]);
+
   // Calcul du niveau de sel
   const calculerNiveauSel = () => {
     const consommationTotale = historique
@@ -191,6 +349,79 @@ function AppProvider({ children }) {
     return false;
   };
 
+  // Fonctions pour les interventions
+  const ajouterIntervention = (intervention) => {
+    const nouvelleIntervention = {
+      ...intervention,
+      id: Date.now(),
+      dateCreation: new Date().toISOString()
+    };
+    
+    if (intervention.etat === 'Planifiee') {
+      setInterventionsPlanifiees(prev => [nouvelleIntervention, ...prev]);
+    } else {
+      setInterventions(prev => [nouvelleIntervention, ...prev]);
+    }
+  };
+
+  const modifierIntervention = (id, modifications) => {
+    setInterventions(prev => prev.map(intervention => 
+      intervention.id === id ? { ...intervention, ...modifications } : intervention
+    ));
+    setInterventionsPlanifiees(prev => prev.map(intervention => 
+      intervention.id === id ? { ...intervention, ...modifications } : intervention
+    ));
+  };
+
+  const supprimerIntervention = (id) => {
+    setInterventions(prev => prev.filter(intervention => intervention.id !== id));
+    setInterventionsPlanifiees(prev => prev.filter(intervention => intervention.id !== id));
+  };
+
+  const planifierIntervention = (intervention) => {
+    const interventionPlanifiee = {
+      ...intervention,
+      etat: 'Planifiee',
+      id: Date.now()
+    };
+    setInterventionsPlanifiees(prev => [interventionPlanifiee, ...prev]);
+  };
+
+  const terminerIntervention = (id) => {
+    modifierIntervention(id, { 
+      etat: 'Terminee',
+      dateTermination: new Date().toISOString()
+    });
+  };
+
+  // Calculs statistiques
+  const calculerStatistiques = () => {
+    const toutesInterventions = [...interventions, ...interventionsPlanifiees];
+    
+    const stats = {
+      total: toutesInterventions.length,
+      terminees: toutesInterventions.filter(i => i.etat === 'Terminee').length,
+      planifiees: toutesInterventions.filter(i => i.etat === 'Planifiee').length,
+      enCours: toutesInterventions.filter(i => i.etat === 'EnCours').length,
+      coutTotal: toutesInterventions.reduce((total, i) => total + (i.cout || 0), 0),
+      dureeTotale: toutesInterventions.reduce((total, i) => total + (i.duree || 0), 0),
+      parType: {},
+      parPriorite: {}
+    };
+
+    // Statistiques par type
+    TYPES_INTERVENTIONS.forEach(type => {
+      stats.parType[type.value] = toutesInterventions.filter(i => i.type === type.value).length;
+    });
+
+    // Statistiques par priorité
+    PRIORITES.forEach(priorite => {
+      stats.parPriorite[priorite.value] = toutesInterventions.filter(i => i.priorite === priorite.value).length;
+    });
+
+    return stats;
+  };
+
   const value = {
     parametres,
     setParametres,
@@ -204,6 +435,17 @@ function AppProvider({ children }) {
     setDerniereValeurRC,
     derniereValeurSF,
     setDerniereValeurSF,
+    // Nouvelles fonctions pour les interventions
+    interventions,
+    interventionsPlanifiees,
+    notifications,
+    ajouterIntervention,
+    modifierIntervention,
+    supprimerIntervention,
+    planifierIntervention,
+    terminerIntervention,
+    calculerStatistiques,
+    setNotifications
   };
 
   return (
@@ -221,109 +463,307 @@ function useAppContext() {
   return context;
 }
 
-function AddInterventionDialog({ open, onClose, onAdd }) {
-  const [newEntry, setNewEntry] = React.useState({
+function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 'ajout' }) {
+  const [formData, setFormData] = React.useState({
     date: new Date().toISOString().split('T')[0],
     type: 'Remplissage',
+    priorite: 'Normale',
+    etat: mode === 'ajout' ? 'Terminee' : 'Planifiee',
     detail: '',
     operation: 'Ajout',
-    quantite: 25
+    quantite: 25,
+    technicien: 'Utilisateur',
+    duree: 30,
+    cout: 0,
+    commentaires: '',
+    rappel: false,
+    rappelDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    prochaineIntervention: ''
   });
 
-  const handleAdd = () => {
-    const entry = {
-      id: Date.now(),
-      ...newEntry,
-      quantite: parseFloat(newEntry.quantite)
+  React.useEffect(() => {
+    if (intervention) {
+      setFormData(intervention);
+    }
+  }, [intervention]);
+
+  const handleSubmit = () => {
+    const interventionData = {
+      ...formData,
+      quantite: parseFloat(formData.quantite),
+      duree: parseInt(formData.duree),
+      cout: parseFloat(formData.cout)
     };
-    onAdd(entry);
-    setNewEntry({
+    
+    onAdd(interventionData);
+    setFormData({
       date: new Date().toISOString().split('T')[0],
       type: 'Remplissage',
+      priorite: 'Normale',
+      etat: 'Terminee',
       detail: '',
       operation: 'Ajout',
-      quantite: 25
+      quantite: 25,
+      technicien: 'Utilisateur',
+      duree: 30,
+      cout: 0,
+      commentaires: '',
+      rappel: false,
+      rappelDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      prochaineIntervention: ''
     });
   };
 
+  const getTypeIcon = (type) => {
+    const typeInfo = TYPES_INTERVENTIONS.find(t => t.value === type);
+    return typeInfo ? typeInfo.icon : '📋';
+  };
+
+  const getTypeColor = (type) => {
+    const typeInfo = TYPES_INTERVENTIONS.find(t => t.value === type);
+    return typeInfo ? typeInfo.couleur : '#666';
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ bgcolor: cardColor, color: cardTitleColor }}>
-        Ajouter une intervention
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ bgcolor: cardColor, color: cardTitleColor, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <span style={{ fontSize: '1.5rem' }}>{getTypeIcon(formData.type)}</span>
+        {mode === 'ajout' ? 'Nouvelle intervention' : 'Modifier intervention'}
       </DialogTitle>
       <DialogContent sx={{ bgcolor: cardColor }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+          {/* Informations de base */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              InputLabelProps={{ style: { color: cardTitleColor } }}
+              InputProps={{ style: { color: textColor } }}
+              sx={{ input: { color: textColor } }}
+              fullWidth
+            />
+            
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Type d'intervention</InputLabel>
+              <Select
+                value={formData.type}
+                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                {TYPES_INTERVENTIONS.map(type => (
+                  <MenuItem key={type.value} value={type.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span>{type.icon}</span>
+                      <span>{type.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Priorité et état */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Priorité</InputLabel>
+              <Select
+                value={formData.priorite}
+                onChange={(e) => setFormData(prev => ({ ...prev, priorite: e.target.value }))}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                {PRIORITES.map(priorite => (
+                  <MenuItem key={priorite.value} value={priorite.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%', 
+                        bgcolor: priorite.couleur 
+                      }} />
+                      <span>{priorite.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>État</InputLabel>
+              <Select
+                value={formData.etat}
+                onChange={(e) => setFormData(prev => ({ ...prev, etat: e.target.value }))}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                {ETATS_INTERVENTIONS.map(etat => (
+                  <MenuItem key={etat.value} value={etat.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%', 
+                        bgcolor: etat.couleur 
+                      }} />
+                      <span>{etat.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Détails et opération */}
           <TextField
-            label="Date"
-            type="date"
-            value={newEntry.date}
-            onChange={(e) => setNewEntry(prev => ({ ...prev, date: e.target.value }))}
+            label="Détail de l'intervention"
+            value={formData.detail}
+            onChange={(e) => setFormData(prev => ({ ...prev, detail: e.target.value }))}
             InputLabelProps={{ style: { color: cardTitleColor } }}
             InputProps={{ style: { color: textColor } }}
             sx={{ input: { color: textColor } }}
             fullWidth
+            multiline
+            rows={2}
           />
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: cardTitleColor }}>Type</InputLabel>
-            <Select
-              value={newEntry.type}
-              onChange={(e) => setNewEntry(prev => ({ ...prev, type: e.target.value }))}
-              sx={{ 
-                color: textColor,
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
-              }}
-            >
-              <MenuItem value="Remplissage">Remplissage</MenuItem>
-              <MenuItem value="Régénération">Régénération</MenuItem>
-              <MenuItem value="Maintenance">Maintenance</MenuItem>
-              <MenuItem value="Entretien">Entretien</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: cardTitleColor }}>Opération</InputLabel>
-            <Select
-              value={newEntry.operation}
-              onChange={(e) => setNewEntry(prev => ({ ...prev, operation: e.target.value }))}
-              sx={{ 
-                color: textColor,
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
-              }}
-            >
-              <MenuItem value="Ajout">Ajout de sel</MenuItem>
-              <MenuItem value="Consommation">Consommation de sel</MenuItem>
-            </Select>
-          </FormControl>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Opération</InputLabel>
+              <Select
+                value={formData.operation}
+                onChange={(e) => setFormData(prev => ({ ...prev, operation: e.target.value }))}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Ajout">Ajout de sel</MenuItem>
+                <MenuItem value="Consommation">Consommation de sel</MenuItem>
+                <MenuItem value="Maintenance">Maintenance</MenuItem>
+                <MenuItem value="Entretien">Entretien</MenuItem>
+                <MenuItem value="Inspection">Inspection</MenuItem>
+                <MenuItem value="Test">Test</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              label={formData.operation === 'Consommation' ? 'Sel consommé (kg)' : 'Sel ajouté (kg)'}
+              type="number"
+              value={formData.quantite}
+              onChange={(e) => setFormData(prev => ({ ...prev, quantite: e.target.value }))}
+              InputLabelProps={{ style: { color: cardTitleColor } }}
+              InputProps={{ style: { color: textColor } }}
+              sx={{ input: { color: textColor } }}
+              fullWidth
+            />
+          </Box>
+
+          {/* Informations techniques */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+            <TextField
+              label="Technicien"
+              value={formData.technicien}
+              onChange={(e) => setFormData(prev => ({ ...prev, technicien: e.target.value }))}
+              InputLabelProps={{ style: { color: cardTitleColor } }}
+              InputProps={{ style: { color: textColor } }}
+              sx={{ input: { color: textColor } }}
+              fullWidth
+            />
+            
+            <TextField
+              label="Durée (minutes)"
+              type="number"
+              value={formData.duree}
+              onChange={(e) => setFormData(prev => ({ ...prev, duree: e.target.value }))}
+              InputLabelProps={{ style: { color: cardTitleColor } }}
+              InputProps={{ style: { color: textColor } }}
+              sx={{ input: { color: textColor } }}
+              fullWidth
+            />
+            
+            <TextField
+              label="Coût (€)"
+              type="number"
+              value={formData.cout}
+              onChange={(e) => setFormData(prev => ({ ...prev, cout: e.target.value }))}
+              InputLabelProps={{ style: { color: cardTitleColor } }}
+              InputProps={{ style: { color: textColor } }}
+              sx={{ input: { color: textColor } }}
+              fullWidth
+            />
+          </Box>
+
+          {/* Commentaires */}
           <TextField
-            label={newEntry.operation === 'Consommation' ? 'Sel consommé (kg)' : 'Sel ajouté (kg)'}
-            type="number"
-            value={newEntry.quantite}
-            onChange={(e) => setNewEntry(prev => ({ ...prev, quantite: e.target.value }))}
+            label="Commentaires"
+            value={formData.commentaires}
+            onChange={(e) => setFormData(prev => ({ ...prev, commentaires: e.target.value }))}
             InputLabelProps={{ style: { color: cardTitleColor } }}
             InputProps={{ style: { color: textColor } }}
             sx={{ input: { color: textColor } }}
             fullWidth
+            multiline
+            rows={3}
           />
-          <TextField
-            label="Détail"
-            value={newEntry.detail}
-            onChange={(e) => setNewEntry(prev => ({ ...prev, detail: e.target.value }))}
-            InputLabelProps={{ style: { color: cardTitleColor } }}
-            InputProps={{ style: { color: textColor } }}
-            sx={{ input: { color: textColor } }}
-            fullWidth
-          />
+
+          {/* Planification */}
+          {formData.etat === 'Planifiee' && (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                label="Date de rappel"
+                type="date"
+                value={formData.rappelDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, rappelDate: e.target.value }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+              
+              <TextField
+                label="Prochaine intervention"
+                type="date"
+                value={formData.prochaineIntervention}
+                onChange={(e) => setFormData(prev => ({ ...prev, prochaineIntervention: e.target.value }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+            </Box>
+          )}
         </Box>
       </DialogContent>
       <DialogActions sx={{ bgcolor: cardColor }}>
         <Button onClick={onClose} sx={{ color: textColor }}>
           Annuler
         </Button>
-        <Button onClick={handleAdd} sx={{ color: accentColor }}>
-          Ajouter
+        <Button 
+          onClick={handleSubmit} 
+          sx={{ 
+            color: '#fff',
+            bgcolor: getTypeColor(formData.type),
+            '&:hover': { bgcolor: getTypeColor(formData.type) + 'dd' }
+          }}
+        >
+          {mode === 'ajout' ? 'Ajouter' : 'Modifier'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -331,12 +771,25 @@ function AddInterventionDialog({ open, onClose, onAdd }) {
 }
 
 function DashboardCards() {
-  const { niveauSel, historique, setHistorique } = useAppContext();
+  const { niveauSel, interventions, interventionsPlanifiees, calculerStatistiques } = useAppContext();
   const [openDialog, setOpenDialog] = React.useState(false);
 
+  const stats = calculerStatistiques();
+  
+  // Trouver la prochaine intervention planifiée
+  const prochaineIntervention = interventionsPlanifiees
+    .filter(i => new Date(i.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
+  // Trouver la dernière intervention terminée
+  const derniereIntervention = interventions
+    .filter(i => i.etat === 'Terminee')
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
   const handleAddIntervention = (entry) => {
-    setHistorique(prev => [entry, ...prev]);
-    setOpenDialog(false);
+    // Rediriger vers la page des interventions
+    const event = new CustomEvent('navigate', { detail: 'interventions' });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -348,9 +801,14 @@ function DashboardCards() {
               <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
                 <EventIcon />
               </Avatar>
-              <Typography variant="h6" sx={{ color: cardTitleColor }}>Prochaine régénération</Typography>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Prochaine intervention</Typography>
             </Box>
-            <Typography variant="h5" sx={{ color: textColor }}>12/06/2024 à 02:00</Typography>
+            <Typography variant="h5" sx={{ color: textColor }}>
+              {prochaineIntervention ? 
+                `${prochaineIntervention.date} - ${TYPES_INTERVENTIONS.find(t => t.value === prochaineIntervention.type)?.label}` : 
+                'Aucune planifiée'
+              }
+            </Typography>
           </CardContent>
         </Card>
         <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
@@ -370,11 +828,13 @@ function DashboardCards() {
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
-                <WaterDropIcon />
+                <HistoryIcon />
               </Avatar>
-              <Typography variant="h6" sx={{ color: cardTitleColor }}>Volume traité</Typography>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Interventions</Typography>
             </Box>
-            <Typography variant="h5" sx={{ color: textColor }}>3200 L</Typography>
+            <Typography variant="h5" sx={{ color: textColor }}>
+              {stats.total} total ({stats.planifiees} planifiées)
+            </Typography>
           </CardContent>
         </Card>
         <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
@@ -383,10 +843,10 @@ function DashboardCards() {
               <Avatar sx={{ bgcolor: '#ffa000', mr: 2 }}>
                 <WarningIcon />
               </Avatar>
-              <Typography variant="h6" sx={{ color: cardTitleColor }}>Alertes</Typography>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Coût total</Typography>
             </Box>
             <Typography variant="h5" sx={{ color: textColor }}>
-              {niveauSel <= 20 ? 'Niveau de sel bas' : 'Aucune alerte'}
+              {stats.coutTotal}€
             </Typography>
           </CardContent>
         </Card>
@@ -396,7 +856,10 @@ function DashboardCards() {
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
         <Button
           variant="contained"
-          onClick={() => setOpenDialog(true)}
+          onClick={() => {
+            const event = new CustomEvent('navigate', { detail: 'interventions' });
+            window.dispatchEvent(event);
+          }}
           sx={{
             bgcolor: accentColor,
             color: '#fff',
@@ -407,15 +870,9 @@ function DashboardCards() {
             '&:hover': { bgcolor: '#2e7d32' }
           }}
         >
-          + Ajouter une intervention
+          + Gérer les interventions
         </Button>
       </Box>
-
-      <AddInterventionDialog 
-        open={openDialog} 
-        onClose={() => setOpenDialog(false)} 
-        onAdd={handleAddIntervention} 
-      />
     </>
   );
 }
@@ -920,6 +1377,495 @@ function ParametresForm() {
   );
 }
 
+function InterventionsPage() {
+  const { 
+    interventions, 
+    interventionsPlanifiees, 
+    ajouterIntervention, 
+    modifierIntervention, 
+    supprimerIntervention,
+    terminerIntervention,
+    calculerStatistiques,
+    notifications,
+    setNotifications
+  } = useAppContext();
+  
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const [selectedIntervention, setSelectedIntervention] = React.useState(null);
+  const [dialogMode, setDialogMode] = React.useState('ajout');
+  const [activeTab, setActiveTab] = React.useState(0);
+  const [filtreType, setFiltreType] = React.useState('Tous');
+  const [filtrePriorite, setFiltrePriorite] = React.useState('Toutes');
+  const [filtreEtat, setFiltreEtat] = React.useState('Tous');
+
+  const stats = calculerStatistiques();
+
+  const handleAddIntervention = (intervention) => {
+    ajouterIntervention(intervention);
+    setOpenDialog(false);
+  };
+
+  const handleEditIntervention = (intervention) => {
+    setSelectedIntervention(intervention);
+    setDialogMode('modification');
+    setOpenDialog(true);
+  };
+
+  const handleDeleteIntervention = (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette intervention ?')) {
+      supprimerIntervention(id);
+    }
+  };
+
+  const handleTerminerIntervention = (id) => {
+    terminerIntervention(id);
+  };
+
+  const handleMarquerLue = (notificationId) => {
+    setNotifications(prev => prev.map(notif => 
+      notif.id === notificationId ? { ...notif, lue: true } : notif
+    ));
+  };
+
+  const getTypeIcon = (type) => {
+    const typeInfo = TYPES_INTERVENTIONS.find(t => t.value === type);
+    return typeInfo ? typeInfo.icon : '📋';
+  };
+
+  const getTypeColor = (type) => {
+    const typeInfo = TYPES_INTERVENTIONS.find(t => t.value === type);
+    return typeInfo ? typeInfo.couleur : '#666';
+  };
+
+  const getPrioriteColor = (priorite) => {
+    const prioriteInfo = PRIORITES.find(p => p.value === priorite);
+    return prioriteInfo ? prioriteInfo.couleur : '#666';
+  };
+
+  const getEtatColor = (etat) => {
+    const etatInfo = ETATS_INTERVENTIONS.find(e => e.value === etat);
+    return etatInfo ? etatInfo.couleur : '#666';
+  };
+
+  const filtrerInterventions = (liste) => {
+    return liste.filter(intervention => {
+      const matchType = filtreType === 'Tous' || intervention.type === filtreType;
+      const matchPriorite = filtrePriorite === 'Toutes' || intervention.priorite === filtrePriorite;
+      const matchEtat = filtreEtat === 'Tous' || intervention.etat === filtreEtat;
+      return matchType && matchPriorite && matchEtat;
+    });
+  };
+
+  const interventionsFiltrees = filtrerInterventions(interventions);
+  const planifieesFiltrees = filtrerInterventions(interventionsPlanifiees);
+
+  return (
+    <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
+      {/* En-tête avec statistiques */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
+                <HistoryIcon />
+              </Avatar>
+              <Typography variant="h4" sx={{ color: cardTitleColor, fontWeight: 700 }}>
+                Gestion des Interventions
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setSelectedIntervention(null);
+                setDialogMode('ajout');
+                setOpenDialog(true);
+              }}
+              sx={{
+                bgcolor: accentColor,
+                color: '#fff',
+                '&:hover': { bgcolor: '#2e7d32' }
+              }}
+            >
+              + Nouvelle intervention
+            </Button>
+          </Box>
+
+          {/* Statistiques rapides */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Total</Typography>
+              <Typography variant="h4" sx={{ color: textColor }}>{stats.total}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Terminées</Typography>
+              <Typography variant="h4" sx={{ color: '#4caf50' }}>{stats.terminees}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Planifiées</Typography>
+              <Typography variant="h4" sx={{ color: '#2196f3' }}>{stats.planifiees}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Coût total</Typography>
+              <Typography variant="h4" sx={{ color: '#ff9800' }}>{stats.coutTotal}€</Typography>
+            </Card>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Onglets */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
+        <CardContent>
+          <Box sx={{ borderBottom: 1, borderColor: '#555', mb: 3 }}>
+            <Box sx={{ display: 'flex' }}>
+              <Button
+                onClick={() => setActiveTab(0)}
+                sx={{
+                  color: activeTab === 0 ? accentColor : textColor,
+                  borderBottom: activeTab === 0 ? 2 : 0,
+                  borderColor: accentColor,
+                  borderRadius: 0,
+                  '&:hover': { bgcolor: 'transparent' }
+                }}
+              >
+                Interventions ({interventions.length})
+              </Button>
+              <Button
+                onClick={() => setActiveTab(1)}
+                sx={{
+                  color: activeTab === 1 ? accentColor : textColor,
+                  borderBottom: activeTab === 1 ? 2 : 0,
+                  borderColor: accentColor,
+                  borderRadius: 0,
+                  '&:hover': { bgcolor: 'transparent' }
+                }}
+              >
+                Planifiées ({interventionsPlanifiees.length})
+              </Button>
+              <Button
+                onClick={() => setActiveTab(2)}
+                sx={{
+                  color: activeTab === 2 ? accentColor : textColor,
+                  borderBottom: activeTab === 2 ? 2 : 0,
+                  borderColor: accentColor,
+                  borderRadius: 0,
+                  '&:hover': { bgcolor: 'transparent' }
+                }}
+              >
+                Notifications ({notifications.filter(n => !n.lue).length})
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Filtres */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 3 }}>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Type</InputLabel>
+              <Select
+                value={filtreType}
+                onChange={(e) => setFiltreType(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Tous">Tous les types</MenuItem>
+                {TYPES_INTERVENTIONS.map(type => (
+                  <MenuItem key={type.value} value={type.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span>{type.icon}</span>
+                      <span>{type.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Priorité</InputLabel>
+              <Select
+                value={filtrePriorite}
+                onChange={(e) => setFiltrePriorite(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Toutes">Toutes les priorités</MenuItem>
+                {PRIORITES.map(priorite => (
+                  <MenuItem key={priorite.value} value={priorite.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%', 
+                        bgcolor: priorite.couleur 
+                      }} />
+                      <span>{priorite.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>État</InputLabel>
+              <Select
+                value={filtreEtat}
+                onChange={(e) => setFiltreEtat(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Tous">Tous les états</MenuItem>
+                {ETATS_INTERVENTIONS.map(etat => (
+                  <MenuItem key={etat.value} value={etat.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%', 
+                        bgcolor: etat.couleur 
+                      }} />
+                      <span>{etat.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Contenu des onglets */}
+          {activeTab === 0 && (
+            <TableContainer component={Paper} sx={{ bgcolor: cardColor, boxShadow: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Date</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Type</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Priorité</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>État</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Détail</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Technicien</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Durée</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Coût</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {interventionsFiltrees.map((intervention) => (
+                    <TableRow key={intervention.id} sx={{ '&:hover': { bgcolor: '#2c3e50' } }}>
+                      <TableCell sx={{ color: textColor }}>{intervention.date}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <span style={{ fontSize: '1.2rem' }}>{getTypeIcon(intervention.type)}</span>
+                          <Typography sx={{ color: textColor }}>
+                            {TYPES_INTERVENTIONS.find(t => t.value === intervention.type)?.label}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%', 
+                            bgcolor: getPrioriteColor(intervention.priorite) 
+                          }} />
+                          <Typography sx={{ color: textColor }}>{intervention.priorite}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%', 
+                            bgcolor: getEtatColor(intervention.etat) 
+                          }} />
+                          <Typography sx={{ color: textColor }}>{intervention.etat}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: textColor, maxWidth: 200 }}>
+                        <Typography variant="body2" sx={{ color: textColor }}>
+                          {intervention.detail}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ color: textColor }}>{intervention.technicien}</TableCell>
+                      <TableCell sx={{ color: textColor }}>{intervention.duree} min</TableCell>
+                      <TableCell sx={{ color: textColor }}>{intervention.cout}€</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton
+                            onClick={() => handleEditIntervention(intervention)}
+                            sx={{ color: mainColor, '&:hover': { bgcolor: '#1565c0' } }}
+                          >
+                            ✏️
+                          </IconButton>
+                          {intervention.etat === 'EnCours' && (
+                            <IconButton
+                              onClick={() => handleTerminerIntervention(intervention.id)}
+                              sx={{ color: accentColor, '&:hover': { bgcolor: '#2e7d32' } }}
+                            >
+                              ✅
+                            </IconButton>
+                          )}
+                          <IconButton
+                            onClick={() => handleDeleteIntervention(intervention.id)}
+                            sx={{ color: '#e74c3c', '&:hover': { bgcolor: '#c0392b' } }}
+                          >
+                            🗑️
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {activeTab === 1 && (
+            <TableContainer component={Paper} sx={{ bgcolor: cardColor, boxShadow: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Date prévue</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Type</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Priorité</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Détail</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Technicien</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Rappel</TableCell>
+                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {planifieesFiltrees.map((intervention) => (
+                    <TableRow key={intervention.id} sx={{ '&:hover': { bgcolor: '#2c3e50' } }}>
+                      <TableCell sx={{ color: textColor }}>{intervention.date}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <span style={{ fontSize: '1.2rem' }}>{getTypeIcon(intervention.type)}</span>
+                          <Typography sx={{ color: textColor }}>
+                            {TYPES_INTERVENTIONS.find(t => t.value === intervention.type)?.label}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%', 
+                            bgcolor: getPrioriteColor(intervention.priorite) 
+                          }} />
+                          <Typography sx={{ color: textColor }}>{intervention.priorite}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: textColor, maxWidth: 200 }}>
+                        <Typography variant="body2" sx={{ color: textColor }}>
+                          {intervention.detail}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ color: textColor }}>{intervention.technicien}</TableCell>
+                      <TableCell sx={{ color: textColor }}>
+                        {intervention.rappel ? intervention.rappelDate : 'Aucun'}
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton
+                            onClick={() => handleEditIntervention(intervention)}
+                            sx={{ color: mainColor, '&:hover': { bgcolor: '#1565c0' } }}
+                          >
+                            ✏️
+                          </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              modifierIntervention(intervention.id, { etat: 'EnCours' });
+                            }}
+                            sx={{ color: accentColor, '&:hover': { bgcolor: '#2e7d32' } }}
+                          >
+                            ▶️
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleDeleteIntervention(intervention.id)}
+                            sx={{ color: '#e74c3c', '&:hover': { bgcolor: '#c0392b' } }}
+                          >
+                            🗑️
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {activeTab === 2 && (
+            <Box>
+              {notifications.length === 0 ? (
+                <Typography sx={{ color: textColor, textAlign: 'center', py: 4 }}>
+                  Aucune notification
+                </Typography>
+              ) : (
+                notifications.map((notification) => (
+                  <Card key={notification.id} sx={{ 
+                    bgcolor: notification.lue ? '#2c3e50' : '#34495e', 
+                    mb: 2, 
+                    borderLeft: 4, 
+                    borderColor: notification.priorite === 'Haute' ? '#f44336' : 
+                                notification.priorite === 'Urgente' ? '#d32f2f' : '#ff9800'
+                  }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>
+                            {notification.type}
+                          </Typography>
+                          <Typography sx={{ color: textColor, mb: 1 }}>
+                            {notification.message}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#888' }}>
+                            {new Date(notification.date).toLocaleString('fr-FR')}
+                          </Typography>
+                        </Box>
+                        {!notification.lue && (
+                          <Button
+                            size="small"
+                            onClick={() => handleMarquerLue(notification.id)}
+                            sx={{ color: accentColor }}
+                          >
+                            Marquer comme lue
+                          </Button>
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
+      <InterventionDialog 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)} 
+        onAdd={handleAddIntervention}
+        intervention={selectedIntervention}
+        mode={dialogMode}
+      />
+    </Box>
+  );
+}
+
 function HistoriquePage() {
   const { historique, setHistorique } = useAppContext();
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -1002,7 +1948,7 @@ function HistoriquePage() {
         </CardContent>
       </Card>
 
-      <AddInterventionDialog 
+      <InterventionDialog 
         open={openDialog} 
         onClose={() => setOpenDialog(false)} 
         onAdd={handleAddEntry} 
@@ -1649,6 +2595,8 @@ function PageContent({ page }) {
           <DashboardCards />
         </>
       );
+    case 'interventions':
+      return <InterventionsPage />;
     case 'parametres':
       return <ParametresForm />;
     case 'historique':
