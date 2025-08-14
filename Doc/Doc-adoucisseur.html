@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Documentation Adoucisseur - Fleck Electronic SXT</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; background: #fafbfc;}
+    h1 { color: #204080; }
+    h2, h3 { color: #274e83; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    td, th { border: 1px solid #bbb; padding: 8px; }
+    th { background: #eff2f7; }
+    .illustration { text-align: center; margin: 24px 0; }
+    .icones { display: flex; justify-content: space-around; }
+    .icones div { text-align: center; }
+    ul { margin-bottom: 10px; }
+    code { background: #f4f6f9; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<h1>Documentation Adoucisseur – Fleck Electronic SXT</h1>
+
+<h2>Table des matières</h2>
+<ul>
+  <li><a href="#fonctionnement">1. Fonctionnement général</a></li>
+  <li><a href="#programmation">2. Programmation</a></li>
+  <li><a href="#diagnostic">3. Mode diagnostic</a></li>
+</ul>
+
+<hr>
+
+<h2 id="fonctionnement">1. Fonctionnement général</h2>
+
+<div class="illustration">
+  <img src="https://i.imgur.com/bStwVNd.png" alt="Schéma d’un adoucisseur Fleck SXT" width="400"><br>
+  <small>Schéma simplifié d’un adoucisseur Fleck SXT avec affichage, boutons et vanne[1]</small>
+</div>
+
+<h3>1.1 Présentation des boutons et icônes</h3>
+<div class="icones">
+  <div>
+    <img src="https://i.imgur.com/Xv0BoFZ.png" alt="Icône de régénération" width="60"><br>
+    Bouton de régénération
+  </div>
+  <div>
+    <img src="https://i.imgur.com/WYB1Bpv.png" alt="Icône réglage" width="60"><br>
+    Boutons de réglage
+  </div>
+</div>
+
+<ul>
+  <li><b>Bouton de régénération :</b> Déclenche une régénération manuelle.</li>
+  <li><b>Boutons de réglage</b> : Pour ajuster l’heure, les valeurs et les paramètres.</li>
+</ul>
+<ul>
+  <li><b>Indicateur de service :</b> vanne en service (icône allumée)</li>
+  <li><b>Régénération programmée la nuit :</b> icône clignotante</li>
+  <li><b>Autres :</b> indicateur diagnostic/erreur, indicateur programmation, débit, multiplication par 1 000</li>
+</ul>
+
+<h3>1.2 Modes de régénération</h3>
+<ul>
+  <li><b>Régénération chronométrique (tc)</b> : Selon un intervalle de jours préréglé.</li>
+  <li><b>Régénération hebdomadaire (dAY)</b> : Jours pré-définis dans la semaine.</li>
+  <li><b>Régénération volumétrique retardée (Fd)</b> : Selon volume d’eau utilisé, démarrage à l’heure programmée.</li>
+  <li><b>Régénération volumétrique immédiate (FI)</b> : Dès que la capacité est épuisée.</li>
+</ul>
+
+<h3>1.3 Affichage en service</h3>
+<table>
+  <tr>
+    <th>Mode</th>
+    <th>Affichage alternatif</th>
+  </tr>
+  <tr>
+    <td>Volumétrique</td>
+    <td>Heure du jour &lt;-&gt; Volume restant</td>
+  </tr>
+  <tr>
+    <td>Chronométrique</td>
+    <td>Heure du jour &lt;-&gt; Nombre de jours restant</td>
+  </tr>
+  <tr>
+    <td>Vanne Twin</td>
+    <td>Heure du jour &lt;-&gt; Volume restant &lt;-&gt; bouteille en service</td>
+  </tr>
+</table>
+
+<div class="illustration">
+  <img src="https://i.imgur.com/zLsNPJd.png" alt="Affichage digital simplifié Fleck SXT" width="200"><br>
+  <small>Exemple d’affichage digital simplifié (mode service & volumétrique)[1]</small>
+</div>
+
+<p>
+Pour régler l’heure :<br>
+1. Maintenir le bouton <code>+</code> ou <code>-</code> jusqu’à l’icône <b>TD</b>.<br>
+2. Régler l’heure avec <code>+</code>/<code>-</code>, valider avec le bouton de régénération.
+</p>
+
+<h3>1.4 Affichage pendant une régénération</h3>
+<ul>
+  <li><b>BW (Backwash)</b> : détassage</li>
+  <li><b>BD (Brine draw)</b> : aspiration & rinçage lent</li>
+  <li><b>RR (Rapid rinse)</b> : rinçage rapide</li>
+  <li><b>BF (Brine fill)</b> : renvoi d'eau</li>
+</ul>
+<p>
+Le temps restant s’affiche en minutes ; le nom du cycle clignote à son démarrage.
+</p>
+
+<h3>1.5 Démarrage d’une régénération manuelle</h3>
+<ul>
+  <li>Appuyer puis relâcher le bouton de régénération : l’icône clignote, départ à l’heure programmée.</li>
+  <li>Appuyer et maintenir 5 s pour un départ immédiat.</li>
+</ul>
+
+<div class="illustration">
+  <img src="https://i.imgur.com/yy5R8u0.png" alt="Bouton de régénération instantanée" width="150"><br>
+  <small>Exemple d’action sur bouton de régénération[1]</small>
+</div>
+
+<h3>1.6 Coupure de courant</h3>
+<ul>
+  <li>Les données sont stockées (mémoire non volatile), l’écran éteint, les événements différés.</li>
+  <li>Lors du retour du courant, l’horloge clignote.</li>
+  <li>Le volume d’eau utilisé pendant la coupure n’est pas enregistré.</li>
+</ul>
+
+<hr>
+
+<h2 id="programmation">2. Programmation</h2>
+
+<h3>2.1 Accès au mode programmation</h3>
+<ol>
+  <li>Régler l’heure à 12:01 puis sortir.</li>
+  <li>Appuyer 5 secondes sur <code>+</code> et <code>-</code> simultanément (icône programmation).</li>
+  <li>Appuyer sur le bouton de régénération pour naviguer, <code>+</code>/<code>-</code> pour modifier.</li>
+  <li>Passer sur toutes les étapes et revenir en service pour valider.</li>
+</ol>
+
+<h3>2.2 Paramètres programmables principaux</h3>
+<table>
+  <tr>
+    <th>Paramètre</th>
+    <th>Code</th>
+    <th>Description</th>
+    <th>Exemple</th>
+  </tr>
+  <tr>
+    <td>Unité d’affichage</td>
+    <td>DF</td>
+    <td>Gallons, Litres ou m3</td>
+    <td>Ltr</td>
+  </tr>
+  <tr>
+    <td>Type de vanne</td>
+    <td>VT</td>
+    <td>Ex : St1b (standard)</td>
+    <td>St1b</td>
+  </tr>
+  <tr>
+    <td>Type de régénération</td>
+    <td>CT</td>
+    <td>tc, dAY, Fd, FI</td>
+    <td>tc</td>
+  </tr>
+  <tr>
+    <td>Type vanne Twin</td>
+    <td>NT</td>
+    <td>Sélection modèle</td>
+    <td>5600</td>
+  </tr>
+  <tr>
+    <td>Capacité système</td>
+    <td>C</td>
+    <td>m3 x °tH</td>
+    <td>200 m3 x °tH</td>
+  </tr>
+  <tr>
+    <td>Dureté eau entrée</td>
+    <td>H</td>
+    <td>en °tH</td>
+    <td>35 °tH</td>
+  </tr>
+  <tr>
+    <td>Type de réserve</td>
+    <td>RS</td>
+    <td>RC (litres) ou SF (%)</td>
+    <td>1200L ou 15%</td>
+  </tr>
+  <tr>
+    <td>Forçage calendaire</td>
+    <td>DO</td>
+    <td>Max jours entre régénérations</td>
+    <td>7 jours</td>
+  </tr>
+  <tr>
+    <td>Heure Régénération</td>
+    <td>RT</td>
+    <td>Format 24h</td>
+    <td>2h00</td>
+  </tr>
+  <tr>
+    <td>Temps BW, BD, RR, BF</td>
+    <td>10.1 à 10.4</td>
+    <td>Durée (min/cycle)</td>
+    <td>10/60/10/12 min</td>
+  </tr>
+</table>
+
+<h3>2.3 Gestion des erreurs (codes ER)</h3>
+<table>
+  <tr>
+    <th>Code</th>
+    <th>Type</th>
+    <th>Cause</th>
+    <th>Solution</th>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>Capteur came</td>
+    <td>Changement de cycle trop lent</td>
+    <td>Vérifier moteurs, connexions, engrenages</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Position cycle</td>
+    <td>Cycle imprévu</td>
+    <td>Vérifier configuration, déclencher régénération manuelle</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Régénération</td>
+    <td>Pas de régénération depuis 99j</td>
+    <td>Lancer régénération manuelle, vérifier compteur</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Mémoire</td>
+    <td>Défaillance mémoire électronique</td>
+    <td>Réinitialiser/programmer; contacter support si persiste</td>
+  </tr>
+</table>
+
+<p>
+<b>Réinitialisation :</b>
+<br>
+Partielle : en mode service, maintenir <code>+</code> et <code>-</code>.<br>
+Totale : débrancher, maintenir bouton régénération au re-branchement.
+</p>
+
+<hr>
+
+<h2 id="diagnostic">3. Mode diagnostic</h2>
+<ol>
+  <li>Appuyer 5 secondes sur <code>+</code> et <code>-</code> depuis le service.</li>
+  <li>Boutons <code>+</code>/<code>-</code> pour faire défiler les affichages :</li>
+</ol>
+<ul>
+  <li>FR : Débit instantané</li>
+  <li>PF : Débit de pointe</li>
+  <li>HR : Heures depuis régénération</li>
+  <li>VU : Volume utilisé depuis régénération</li>
+  <li>RC : Capacité de réserve</li>
+  <li>SV : Version carte</li>
+</ul>
+
+<div class="illustration">
+  <img src="https://i.imgur.com/0CTXxgF.png" alt="Icône diagnostic électronique" width="100"><br>
+  <small>Indicateur mode diagnostic/card version[1]</small>
+</div>
+
+<hr>
+<p><i>Pour une utilisation optimale de cette documentation, consultez la section correspondant à vos besoins et référez-vous aux schémas pour le repérage rapide des boutons et affichages du panneau SXT.</i></p>
+</body>
+</html>
