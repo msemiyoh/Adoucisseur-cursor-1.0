@@ -83,6 +83,24 @@ const ETATS_INTERVENTIONS = [
   { value: 'Reportee', label: 'Reportée', couleur: '#607d8b' }
 ];
 
+// Types d'alertes
+const TYPES_ALERTES = [
+  { value: 'NiveauSel', label: 'Niveau de sel', icon: '🧂', couleur: '#ff9800' },
+  { value: 'Regeneration', label: 'Régénération', icon: '🔄', couleur: '#2196f3' },
+  { value: 'Maintenance', label: 'Maintenance', icon: '🔧', couleur: '#f44336' },
+  { value: 'Intervention', label: 'Intervention', icon: '📅', couleur: '#9c27b0' },
+  { value: 'Performance', label: 'Performance', icon: '📊', couleur: '#4caf50' },
+  { value: 'Systeme', label: 'Système', icon: '⚙️', couleur: '#607d8b' }
+];
+
+// Niveaux de gravité
+const NIVEAUX_GRAVITE = [
+  { value: 'Info', label: 'Information', couleur: '#2196f3', icone: 'ℹ️' },
+  { value: 'Attention', label: 'Attention', couleur: '#ff9800', icone: '⚠️' },
+  { value: 'Critique', label: 'Critique', couleur: '#f44336', icone: '🚨' },
+  { value: 'Urgente', label: 'Urgente', couleur: '#d32f2f', icone: '🚨' }
+];
+
 function AppProvider({ children }) {
   const [parametres, setParametres] = React.useState({
     // Paramètres d'affichage
@@ -125,10 +143,10 @@ function AppProvider({ children }) {
   const [derniereValeurSF, setDerniereValeurSF] = React.useState(10);
 
   const [historique, setHistorique] = React.useState([
-    { id: 1, date: '2024-06-12', type: 'Régénération', detail: 'Auto, 2.5kg sel', operation: 'Consommation', quantite: 2.5 },
-    { id: 2, date: '2024-05-01', type: 'Maintenance', detail: 'Changement résine', operation: 'Consommation', quantite: 0 },
-    { id: 3, date: '2024-04-15', type: 'Régénération', detail: 'Manuelle, 2.5kg sel', operation: 'Consommation', quantite: 2.5 },
-    { id: 4, date: '2024-04-01', type: 'Remplissage', detail: 'Ajout de sel', operation: 'Ajout', quantite: 25 },
+    { id: 1, date: '2024-06-12', type: 'Régénération', detail: 'Auto, 2.5kg sel', quantite: 2.5 },
+    { id: 2, date: '2024-05-01', type: 'Maintenance', detail: 'Changement résine', quantite: 0 },
+    { id: 3, date: '2024-04-15', type: 'Régénération', detail: 'Manuelle, 2.5kg sel', quantite: 2.5 },
+    { id: 4, date: '2024-04-01', type: 'Remplissage', detail: 'Ajout de sel', quantite: 25 },
   ]);
 
   const [historiqueParametres, setHistoriqueParametres] = React.useState([
@@ -174,10 +192,7 @@ function AppProvider({ children }) {
       priorite: 'Normale',
       etat: 'Terminee',
       detail: 'Régénération automatique programmée',
-      operation: 'Consommation',
       quantite: 2.5,
-      technicien: 'Système automatique',
-      duree: 120,
       cout: 0,
       commentaires: 'Régénération normale, tout fonctionne correctement',
       photos: [],
@@ -190,10 +205,7 @@ function AppProvider({ children }) {
       priorite: 'Haute',
       etat: 'Terminee',
       detail: 'Changement de la résine',
-      operation: 'Maintenance',
       quantite: 0,
-      technicien: 'Technicien spécialisé',
-      duree: 240,
       cout: 150,
       commentaires: 'Résine changée, système recalibré',
       photos: [],
@@ -206,10 +218,7 @@ function AppProvider({ children }) {
       priorite: 'Normale',
       etat: 'Terminee',
       detail: 'Ajout de sel dans le bac',
-      operation: 'Ajout',
       quantite: 25,
-      technicien: 'Utilisateur',
-      duree: 15,
       cout: 0,
       commentaires: 'Bac rempli aux 3/4',
       photos: [],
@@ -222,10 +231,7 @@ function AppProvider({ children }) {
       priorite: 'Basse',
       etat: 'Terminee',
       detail: 'Nettoyage du bac à sel',
-      operation: 'Entretien',
       quantite: 0,
-      technicien: 'Utilisateur',
-      duree: 45,
       cout: 0,
       commentaires: 'Bac nettoyé, sel restant conservé',
       photos: [],
@@ -242,10 +248,7 @@ function AppProvider({ children }) {
       priorite: 'Normale',
       etat: 'Planifiee',
       detail: 'Remplissage préventif du bac à sel',
-      operation: 'Ajout',
       quantite: 20,
-      technicien: 'Utilisateur',
-      duree: 15,
       cout: 0,
       commentaires: 'Remplissage préventif',
       photos: [],
@@ -259,11 +262,8 @@ function AppProvider({ children }) {
       priorite: 'Basse',
       etat: 'Planifiee',
       detail: 'Inspection trimestrielle',
-      operation: 'Inspection',
       quantite: 0,
-      technicien: 'Technicien',
-      duree: 60,
-      cout: 50,
+      cout: 0,
       commentaires: 'Inspection de routine',
       photos: [],
       rappel: true,
@@ -294,12 +294,12 @@ function AppProvider({ children }) {
   // Calcul du niveau de sel
   const calculerNiveauSel = () => {
     const consommationTotale = historique
-      .filter(item => item.operation === 'Consommation')
-      .reduce((total, item) => total + item.quantite, 0);
+      .filter(item => item.type === 'Regeneration' || item.type === 'Maintenance')
+      .reduce((total, item) => total + (item.quantite || 0), 0);
     
     const ajoutTotal = historique
-      .filter(item => item.operation === 'Ajout')
-      .reduce((total, item) => total + item.quantite, 0);
+      .filter(item => item.type === 'Remplissage')
+      .reduce((total, item) => total + (item.quantite || 0), 0);
     
     const selRestant = ajoutTotal - consommationTotale;
     const niveau = Math.max(0, (selRestant / parametres.capaciteSel) * 100);
@@ -422,6 +422,191 @@ function AppProvider({ children }) {
     return stats;
   };
 
+  // Système d'alertes intelligent
+  const [alertes, setAlertes] = React.useState([
+    {
+      id: 1,
+      type: 'NiveauSel',
+      niveau: 'Attention',
+      titre: 'Niveau de sel bas',
+      message: 'Le niveau de sel est à 15%. Un remplissage est recommandé dans les prochains jours.',
+      date: new Date().toISOString(),
+      lue: false,
+      actionRequise: true,
+      action: 'Remplir le bac à sel',
+      parametres: { niveauSel: 15 }
+    },
+    {
+      id: 2,
+      type: 'Maintenance',
+      niveau: 'Info',
+      titre: 'Maintenance préventive',
+      message: 'Une inspection trimestrielle est prévue pour le 01/07/2024.',
+      date: new Date().toISOString(),
+      lue: true,
+      actionRequise: false,
+      action: 'Planifier l\'inspection',
+      parametres: { dateMaintenance: '2024-07-01' }
+    },
+    {
+      id: 3,
+      type: 'Performance',
+      niveau: 'Info',
+      titre: 'Performance optimale',
+      message: 'L\'adoucisseur fonctionne de manière optimale. Efficacité de régénération : 85%.',
+      date: new Date().toISOString(),
+      lue: true,
+      actionRequise: false,
+      action: 'Continuer la surveillance',
+      parametres: { efficacite: 85 }
+    }
+  ]);
+
+  // Configuration des seuils d'alertes
+  const [seuilsAlertes, setSeuilsAlertes] = React.useState({
+    niveauSelCritique: 10,
+    niveauSelAttention: 20,
+    efficaciteMinimale: 80,
+    dureeMaxIntervention: 30, // jours
+    coutMaxIntervention: 200
+  });
+
+  // Fonction pour générer des alertes automatiques
+  const genererAlertesAutomatiques = React.useCallback(() => {
+    const nouvellesAlertes = [];
+
+    // Alerte niveau de sel
+    if (niveauSel <= seuilsAlertes.niveauSelCritique) {
+      nouvellesAlertes.push({
+        id: Date.now() + 1,
+        type: 'NiveauSel',
+        niveau: 'Critique',
+        titre: 'Niveau de sel critique',
+        message: `Le niveau de sel est très bas (${niveauSel}%). Remplissage urgent requis.`,
+        date: new Date().toISOString(),
+        lue: false,
+        actionRequise: true,
+        action: 'Remplir immédiatement le bac à sel',
+        parametres: { niveauSel }
+      });
+    } else if (niveauSel <= seuilsAlertes.niveauSelAttention) {
+      nouvellesAlertes.push({
+        id: Date.now() + 2,
+        type: 'NiveauSel',
+        niveau: 'Attention',
+        titre: 'Niveau de sel bas',
+        message: `Le niveau de sel est bas (${niveauSel}%). Remplissage recommandé.`,
+        date: new Date().toISOString(),
+        lue: false,
+        actionRequise: true,
+        action: 'Planifier le remplissage',
+        parametres: { niveauSel }
+      });
+    }
+
+    // Alerte efficacité de régénération
+    if (parametres.efficaciteRegeneration < seuilsAlertes.efficaciteMinimale) {
+      nouvellesAlertes.push({
+        id: Date.now() + 3,
+        type: 'Performance',
+        niveau: 'Attention',
+        titre: 'Efficacité de régénération faible',
+        message: `L'efficacité de régénération est de ${parametres.efficaciteRegeneration}%. Une maintenance peut être nécessaire.`,
+        date: new Date().toISOString(),
+        lue: false,
+        actionRequise: true,
+        action: 'Vérifier la résine et les paramètres',
+        parametres: { efficacite: parametres.efficaciteRegeneration }
+      });
+    }
+
+    // Alerte interventions planifiées
+    const interventionsUrgentes = interventionsPlanifiees.filter(i => 
+      new Date(i.date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
+    );
+    
+    if (interventionsUrgentes.length > 0) {
+      nouvellesAlertes.push({
+        id: Date.now() + 4,
+        type: 'Intervention',
+        niveau: 'Attention',
+        titre: 'Interventions planifiées proches',
+        message: `${interventionsUrgentes.length} intervention(s) planifiée(s) dans les 7 prochains jours.`,
+        date: new Date().toISOString(),
+        lue: false,
+        actionRequise: true,
+        action: 'Vérifier les interventions',
+        parametres: { interventions: interventionsUrgentes }
+      });
+    }
+
+    // Alerte coût élevé
+    const coutTotal = interventions.reduce((total, i) => total + (i.cout || 0), 0);
+    if (coutTotal > seuilsAlertes.coutMaxIntervention) {
+      nouvellesAlertes.push({
+        id: Date.now() + 5,
+        type: 'Performance',
+        niveau: 'Attention',
+        titre: 'Coût des interventions élevé',
+        message: `Le coût total des interventions (${coutTotal}€) dépasse le seuil recommandé.`,
+        date: new Date().toISOString(),
+        lue: false,
+        actionRequise: true,
+        action: 'Analyser les coûts',
+        parametres: { coutTotal }
+      });
+    }
+
+    return nouvellesAlertes;
+  }, [niveauSel, parametres.efficaciteRegeneration, interventionsPlanifiees, interventions, seuilsAlertes]);
+
+  // Mettre à jour les alertes automatiquement
+  React.useEffect(() => {
+    const nouvellesAlertes = genererAlertesAutomatiques();
+    if (nouvellesAlertes.length > 0) {
+      setAlertes(prev => {
+        // Éviter les doublons
+        const alertesExistant = prev.map(a => `${a.type}-${a.niveau}`);
+        const nouvellesUniques = nouvellesAlertes.filter(a => 
+          !alertesExistant.includes(`${a.type}-${a.niveau}`)
+        );
+        return [...nouvellesUniques, ...prev];
+      });
+    }
+  }, [genererAlertesAutomatiques]);
+
+  // Fonctions pour gérer les alertes
+  const marquerAlerteLue = (id) => {
+    setAlertes(prev => prev.map(alerte => 
+      alerte.id === id ? { ...alerte, lue: true } : alerte
+    ));
+  };
+
+  const supprimerAlerte = (id) => {
+    setAlertes(prev => prev.filter(alerte => alerte.id !== id));
+  };
+
+  const marquerToutesLues = () => {
+    setAlertes(prev => prev.map(alerte => ({ ...alerte, lue: true })));
+  };
+
+  const supprimerAlertesLues = () => {
+    setAlertes(prev => prev.filter(alerte => !alerte.lue));
+  };
+
+  const getStatistiquesAlertes = () => {
+    const total = alertes.length;
+    const nonLues = alertes.filter(a => !a.lue).length;
+    const critiques = alertes.filter(a => a.niveau === 'Critique' || a.niveau === 'Urgente').length;
+    const parType = {};
+    
+    TYPES_ALERTES.forEach(type => {
+      parType[type.value] = alertes.filter(a => a.type === type.value).length;
+    });
+
+    return { total, nonLues, critiques, parType };
+  };
+
   const value = {
     parametres,
     setParametres,
@@ -445,7 +630,16 @@ function AppProvider({ children }) {
     planifierIntervention,
     terminerIntervention,
     calculerStatistiques,
-    setNotifications
+    setNotifications,
+    alertes,
+    seuilsAlertes,
+    setSeuilsAlertes,
+    marquerAlerteLue,
+    supprimerAlerte,
+    marquerToutesLues,
+    supprimerAlertesLues,
+    getStatistiquesAlertes,
+    setAlertes
   };
 
   return (
@@ -470,10 +664,7 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
     priorite: 'Normale',
     etat: mode === 'ajout' ? 'Terminee' : 'Planifiee',
     detail: '',
-    operation: 'Ajout',
     quantite: 25,
-    technicien: 'Utilisateur',
-    duree: 30,
     cout: 0,
     commentaires: '',
     rappel: false,
@@ -491,7 +682,6 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
     const interventionData = {
       ...formData,
       quantite: parseFloat(formData.quantite),
-      duree: parseInt(formData.duree),
       cout: parseFloat(formData.cout)
     };
     
@@ -502,10 +692,7 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
       priorite: 'Normale',
       etat: 'Terminee',
       detail: '',
-      operation: 'Ajout',
       quantite: 25,
-      technicien: 'Utilisateur',
-      duree: 30,
       cout: 0,
       commentaires: '',
       rappel: false,
@@ -541,7 +728,14 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
               onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
               InputLabelProps={{ style: { color: cardTitleColor } }}
               InputProps={{ style: { color: textColor } }}
-              sx={{ input: { color: textColor } }}
+              sx={{ 
+                input: { color: textColor },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                '& .MuiInputAdornment-root': { color: '#fff' },
+                '& .MuiSvgIcon-root': { color: '#fff' }
+              }}
               fullWidth
             />
             
@@ -552,9 +746,10 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
                 onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
                 sx={{ 
                   color: textColor,
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '& .MuiSelect-icon': { color: '#fff' }
                 }}
               >
                 {TYPES_INTERVENTIONS.map(type => (
@@ -578,9 +773,10 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
                 onChange={(e) => setFormData(prev => ({ ...prev, priorite: e.target.value }))}
                 sx={{ 
                   color: textColor,
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '& .MuiSelect-icon': { color: '#fff' }
                 }}
               >
                 {PRIORITES.map(priorite => (
@@ -606,9 +802,10 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
                 onChange={(e) => setFormData(prev => ({ ...prev, etat: e.target.value }))}
                 sx={{ 
                   color: textColor,
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '& .MuiSelect-icon': { color: '#fff' }
                 }}
               >
                 {ETATS_INTERVENTIONS.map(etat => (
@@ -635,80 +832,53 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
             onChange={(e) => setFormData(prev => ({ ...prev, detail: e.target.value }))}
             InputLabelProps={{ style: { color: cardTitleColor } }}
             InputProps={{ style: { color: textColor } }}
-            sx={{ input: { color: textColor } }}
+            sx={{ 
+              input: { color: textColor },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' }
+            }}
             fullWidth
             multiline
             rows={2}
           />
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: cardTitleColor }}>Opération</InputLabel>
-              <Select
-                value={formData.operation}
-                onChange={(e) => setFormData(prev => ({ ...prev, operation: e.target.value }))}
+                      {formData.type === 'Remplissage' && (
+              <TextField
+                label="Quantité de sel (kg)"
+                type="number"
+                value={formData.quantite}
+                onChange={(e) => setFormData(prev => ({ ...prev, quantite: e.target.value }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
                 sx={{ 
-                  color: textColor,
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                  input: { color: textColor },
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' }
                 }}
-              >
-                <MenuItem value="Ajout">Ajout de sel</MenuItem>
-                <MenuItem value="Consommation">Consommation de sel</MenuItem>
-                <MenuItem value="Maintenance">Maintenance</MenuItem>
-                <MenuItem value="Entretien">Entretien</MenuItem>
-                <MenuItem value="Inspection">Inspection</MenuItem>
-                <MenuItem value="Test">Test</MenuItem>
-              </Select>
-            </FormControl>
+                fullWidth
+              />
+            )}
 
-            <TextField
-              label={formData.operation === 'Consommation' ? 'Sel consommé (kg)' : 'Sel ajouté (kg)'}
-              type="number"
-              value={formData.quantite}
-              onChange={(e) => setFormData(prev => ({ ...prev, quantite: e.target.value }))}
-              InputLabelProps={{ style: { color: cardTitleColor } }}
-              InputProps={{ style: { color: textColor } }}
-              sx={{ input: { color: textColor } }}
-              fullWidth
-            />
-          </Box>
-
-          {/* Informations techniques */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
-            <TextField
-              label="Technicien"
-              value={formData.technicien}
-              onChange={(e) => setFormData(prev => ({ ...prev, technicien: e.target.value }))}
-              InputLabelProps={{ style: { color: cardTitleColor } }}
-              InputProps={{ style: { color: textColor } }}
-              sx={{ input: { color: textColor } }}
-              fullWidth
-            />
-            
-            <TextField
-              label="Durée (minutes)"
-              type="number"
-              value={formData.duree}
-              onChange={(e) => setFormData(prev => ({ ...prev, duree: e.target.value }))}
-              InputLabelProps={{ style: { color: cardTitleColor } }}
-              InputProps={{ style: { color: textColor } }}
-              sx={{ input: { color: textColor } }}
-              fullWidth
-            />
-            
-            <TextField
-              label="Coût (€)"
-              type="number"
-              value={formData.cout}
-              onChange={(e) => setFormData(prev => ({ ...prev, cout: e.target.value }))}
-              InputLabelProps={{ style: { color: cardTitleColor } }}
-              InputProps={{ style: { color: textColor } }}
-              sx={{ input: { color: textColor } }}
-              fullWidth
-            />
-          </Box>
+          {/* Coût des produits */}
+          <TextField
+            label="Coût des produits (€)"
+            type="number"
+            value={formData.cout}
+            onChange={(e) => setFormData(prev => ({ ...prev, cout: e.target.value }))}
+            InputLabelProps={{ style: { color: cardTitleColor } }}
+            InputProps={{ style: { color: textColor } }}
+            sx={{ 
+              input: { color: textColor },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+              '& .MuiFormHelperText-root': { color: '#888' }
+            }}
+            fullWidth
+            helperText="Sel, produits d'entretien, résine, etc."
+          />
 
           {/* Commentaires */}
           <TextField
@@ -717,7 +887,12 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
             onChange={(e) => setFormData(prev => ({ ...prev, commentaires: e.target.value }))}
             InputLabelProps={{ style: { color: cardTitleColor } }}
             InputProps={{ style: { color: textColor } }}
-            sx={{ input: { color: textColor } }}
+            sx={{ 
+              input: { color: textColor },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' }
+            }}
             fullWidth
             multiline
             rows={3}
@@ -733,7 +908,14 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
                 onChange={(e) => setFormData(prev => ({ ...prev, rappelDate: e.target.value }))}
                 InputLabelProps={{ style: { color: cardTitleColor } }}
                 InputProps={{ style: { color: textColor } }}
-                sx={{ input: { color: textColor } }}
+                sx={{ 
+                  input: { color: textColor },
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '& .MuiInputAdornment-root': { color: '#fff' },
+                  '& .MuiSvgIcon-root': { color: '#fff' }
+                }}
                 fullWidth
               />
               
@@ -742,9 +924,16 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
                 type="date"
                 value={formData.prochaineIntervention}
                 onChange={(e) => setFormData(prev => ({ ...prev, prochaineIntervention: e.target.value }))}
-                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputLabelProps={{ style: { color: textColor } }}
                 InputProps={{ style: { color: textColor } }}
-                sx={{ input: { color: textColor } }}
+                sx={{ 
+                  input: { color: textColor },
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#666' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                  '& .MuiInputAdornment-root': { color: '#fff' },
+                  '& .MuiSvgIcon-root': { color: '#fff' }
+                }}
                 fullWidth
               />
             </Box>
@@ -771,10 +960,11 @@ function InterventionDialog({ open, onClose, onAdd, intervention = null, mode = 
 }
 
 function DashboardCards() {
-  const { niveauSel, interventions, interventionsPlanifiees, calculerStatistiques } = useAppContext();
+  const { niveauSel, interventions, interventionsPlanifiees, calculerStatistiques, alertes, getStatistiquesAlertes } = useAppContext();
   const [openDialog, setOpenDialog] = React.useState(false);
 
   const stats = calculerStatistiques();
+  const statsAlertes = getStatistiquesAlertes();
   
   // Trouver la prochaine intervention planifiée
   const prochaineIntervention = interventionsPlanifiees
@@ -786,16 +976,65 @@ function DashboardCards() {
     .filter(i => i.etat === 'Terminee')
     .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
+  // Alertes critiques non lues
+  const alertesCritiques = alertes.filter(a => 
+    (a.niveau === 'Critique' || a.niveau === 'Urgente') && !a.lue
+  );
+
   const handleAddIntervention = (entry) => {
     // Rediriger vers la page des interventions
     const event = new CustomEvent('navigate', { detail: 'interventions' });
     window.dispatchEvent(event);
   };
 
+  const getNiveauSelColor = () => {
+    if (niveauSel <= 10) return '#f44336';
+    if (niveauSel <= 20) return '#ff9800';
+    return '#4caf50';
+  };
+
+  const getNiveauSelIcon = () => {
+    if (niveauSel <= 10) return '🚨';
+    if (niveauSel <= 20) return '⚠️';
+    return '✅';
+  };
+
   return (
     <>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
-        <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3, mb: 4 }}>
+        {/* Niveau de sel avec alerte visuelle */}
+        <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, position: 'relative' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Avatar sx={{ bgcolor: getNiveauSelColor(), mr: 2 }}>
+                <OpacityIcon />
+              </Avatar>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Niveau de sel</Typography>
+              <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span style={{ fontSize: '1.5rem' }}>{getNiveauSelIcon()}</span>
+                {alertesCritiques.some(a => a.type === 'NiveauSel') && (
+                  <Box sx={{ 
+                    width: 8, 
+                    height: 8, 
+                    borderRadius: '50%', 
+                    bgcolor: '#f44336',
+                    animation: 'pulse 2s infinite'
+                  }} />
+                )}
+              </Box>
+            </Box>
+            <Typography variant="h3" sx={{ color: getNiveauSelColor(), fontWeight: 700, mb: 1 }}>
+              {niveauSel}%
+            </Typography>
+            <Typography variant="body2" sx={{ color: textColor }}>
+              {niveauSel <= 10 ? 'Remplissage urgent requis !' :
+               niveauSel <= 20 ? 'Remplissage recommandé' : 'Niveau correct'}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Prochaine intervention */}
+        <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
@@ -811,20 +1050,9 @@ function DashboardCards() {
             </Typography>
           </CardContent>
         </Card>
-        <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <Avatar sx={{ bgcolor: niveauSel > 20 ? accentColor : '#ffa000', mr: 2 }}>
-                <OpacityIcon />
-              </Avatar>
-              <Typography variant="h6" sx={{ color: cardTitleColor }}>Niveau de sel</Typography>
-            </Box>
-            <Typography variant="h5" sx={{ color: textColor }}>
-              {niveauSel}% {niveauSel > 20 ? '🟢' : niveauSel > 10 ? '🟡' : '🔴'}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
+
+        {/* Interventions */}
+        <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
@@ -837,10 +1065,12 @@ function DashboardCards() {
             </Typography>
           </CardContent>
         </Card>
-        <Card sx={{ minWidth: 220, flex: 1, bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
+
+        {/* Coût total */}
+        <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <Avatar sx={{ bgcolor: '#ffa000', mr: 2 }}>
+              <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
                 <WarningIcon />
               </Avatar>
               <Typography variant="h6" sx={{ color: cardTitleColor }}>Coût total</Typography>
@@ -851,28 +1081,119 @@ function DashboardCards() {
           </CardContent>
         </Card>
       </Box>
-      
-      {/* Bouton d'ajout d'intervention */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            const event = new CustomEvent('navigate', { detail: 'interventions' });
-            window.dispatchEvent(event);
-          }}
-          sx={{
-            bgcolor: accentColor,
-            color: '#fff',
-            px: 4,
-            py: 1.5,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            '&:hover': { bgcolor: '#2e7d32' }
-          }}
-        >
-          + Gérer les interventions
-        </Button>
-      </Box>
+
+      {/* Section Alertes critiques */}
+      {alertesCritiques.length > 0 && (
+        <Card sx={{ bgcolor: '#2c3e50', boxShadow: 3, borderRadius: 3, mb: 4, border: 2, borderColor: '#f44336' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Avatar sx={{ bgcolor: '#f44336', mr: 2 }}>
+                <WarningIcon />
+              </Avatar>
+              <Typography variant="h5" sx={{ color: '#f44336', fontWeight: 700 }}>
+                Alertes Critiques ({alertesCritiques.length})
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {alertesCritiques.slice(0, 3).map((alerte) => (
+                <Box key={alerte.id} sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 2, 
+                  p: 1, 
+                  borderRadius: 1,
+                  bgcolor: 'rgba(244, 67, 54, 0.1)'
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>🚨</span>
+                  <Typography sx={{ color: textColor, flex: 1 }}>
+                    {alerte.titre}
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      const event = new CustomEvent('navigate', { detail: 'alertes' });
+                      window.dispatchEvent(event);
+                    }}
+                    sx={{ color: '#f44336' }}
+                  >
+                    Voir détails
+                  </Button>
+                </Box>
+              ))}
+              {alertesCritiques.length > 3 && (
+                <Typography sx={{ color: '#888', textAlign: 'center', mt: 1 }}>
+                  + {alertesCritiques.length - 3} autres alertes critiques
+                </Typography>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section Actions rapides */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 3 }}>Actions rapides</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                const event = new CustomEvent('navigate', { detail: 'interventions' });
+                window.dispatchEvent(event);
+              }}
+              sx={{
+                bgcolor: accentColor,
+                color: '#fff',
+                py: 2,
+                '&:hover': { bgcolor: '#2e7d32' }
+              }}
+            >
+              + Gérer les interventions
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                const event = new CustomEvent('navigate', { detail: 'alertes' });
+                window.dispatchEvent(event);
+              }}
+              sx={{
+                bgcolor: statsAlertes.nonLues > 0 ? '#ff9800' : mainColor,
+                color: '#fff',
+                py: 2,
+                '&:hover': { bgcolor: statsAlertes.nonLues > 0 ? '#f57c00' : '#1565c0' }
+              }}
+            >
+              {statsAlertes.nonLues > 0 ? `📢 Alertes (${statsAlertes.nonLues})` : '📢 Voir les alertes'}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                const event = new CustomEvent('navigate', { detail: 'parametres' });
+                window.dispatchEvent(event);
+              }}
+              sx={{
+                bgcolor: mainColor,
+                color: '#fff',
+                py: 2,
+                '&:hover': { bgcolor: '#1565c0' }
+              }}
+            >
+              ⚙️ Paramètres
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Style pour l'animation pulse */}
+      <style>
+        {`
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+          }
+        `}
+      </style>
     </>
   );
 }
@@ -1362,7 +1683,7 @@ function ParametresForm() {
                 }}
               >
                 Sauvegarder tous les paramètres
-              </button>
+        </button>
             </Box>
             
             {saved && (
@@ -1652,8 +1973,6 @@ function InterventionsPage() {
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Priorité</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>État</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Détail</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Technicien</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Durée</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Coût</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Actions</TableCell>
                   </TableRow>
@@ -1697,8 +2016,6 @@ function InterventionsPage() {
                           {intervention.detail}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ color: textColor }}>{intervention.technicien}</TableCell>
-                      <TableCell sx={{ color: textColor }}>{intervention.duree} min</TableCell>
                       <TableCell sx={{ color: textColor }}>{intervention.cout}€</TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1740,7 +2057,6 @@ function InterventionsPage() {
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Type</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Priorité</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Détail</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Technicien</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Rappel</TableCell>
                     <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Actions</TableCell>
                   </TableRow>
@@ -1773,7 +2089,6 @@ function InterventionsPage() {
                           {intervention.detail}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ color: textColor }}>{intervention.technicien}</TableCell>
                       <TableCell sx={{ color: textColor }}>
                         {intervention.rappel ? intervention.rappelDate : 'Aucun'}
                       </TableCell>
@@ -1911,7 +2226,6 @@ function HistoriquePage() {
                 <TableRow>
                   <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Date</TableCell>
                   <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Type</TableCell>
-                  <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Opération</TableCell>
                   <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Détail</TableCell>
                   <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Quantité (kg)</TableCell>
                   <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Actions</TableCell>
@@ -1922,14 +2236,6 @@ function HistoriquePage() {
                   <TableRow key={entry.id} sx={{ '&:hover': { bgcolor: '#2c3e50' } }}>
                     <TableCell sx={{ color: textColor }}>{entry.date}</TableCell>
                     <TableCell sx={{ color: textColor }}>{entry.type}</TableCell>
-                    <TableCell sx={{ color: textColor }}>
-                      <span style={{ 
-                        color: entry.operation === 'Ajout' ? accentColor : '#e74c3c',
-                        fontWeight: 600 
-                      }}>
-                        {entry.operation}
-                      </span>
-                    </TableCell>
                     <TableCell sx={{ color: textColor }}>{entry.detail}</TableCell>
                     <TableCell sx={{ color: textColor }}>{entry.quantite}</TableCell>
                     <TableCell>
@@ -1958,23 +2264,365 @@ function HistoriquePage() {
 }
 
 function DocumentationPage() {
-  const handleOpenPDF = () => {
-    // Ouvrir le PDF dans un nouvel onglet
-    window.open('/Doc/adoucisseur-top-cab-20-litres-fleck-5600-sxt-254.pdf', '_blank');
-  };
+  const { parametres, niveauSel } = useAppContext();
 
-  const handleDownloadPDF = () => {
-    // Créer un lien de téléchargement
-    const link = document.createElement('a');
-    link.href = '/Doc/adoucisseur-top-cab-20-litres-fleck-5600-sxt-254.pdf';
-    link.download = 'Notice_Fleck_5600_SXT.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const sections = [
+    {
+      id: 'presentation',
+      titre: 'Présentation de l\'application',
+      icon: '🏠',
+      contenu: `
+        <h3>Gestionnaire d'Adoucisseur Fleck 5600 SXT</h3>
+        <p>Cette application vous permet de gérer efficacement votre adoucisseur d'eau Fleck 5600 SXT. Elle centralise toutes les informations importantes et vous aide à maintenir votre système en parfait état.</p>
+        
+        <h4>Fonctionnalités principales :</h4>
+        <ul>
+          <li><strong>📊 Tableau de bord</strong> : Vue d'ensemble de l'état de votre adoucisseur</li>
+          <li><strong>⚙️ Paramètres</strong> : Configuration et suivi des paramètres techniques</li>
+          <li><strong>📅 Interventions</strong> : Gestion complète des interventions et maintenance</li>
+          <li><strong>📢 Alertes</strong> : Système d'alertes intelligent pour la surveillance</li>
+          <li><strong>📈 Historique</strong> : Suivi des modifications et interventions passées</li>
+        </ul>
+      `
+    },
+    {
+      id: 'tableau-bord',
+      titre: 'Tableau de bord',
+      icon: '📊',
+      contenu: `
+        <h3>Vue d'ensemble</h3>
+        <p>Le tableau de bord vous donne une vision claire et immédiate de l'état de votre adoucisseur.</p>
+        
+        <h4>Indicateurs principaux :</h4>
+        <ul>
+          <li><strong>Niveau de sel</strong> : Affichage en temps réel avec codes couleur
+            <ul>
+              <li>🟢 Vert : Niveau correct (>20%)</li>
+              <li>🟡 Orange : Attention requise (10-20%)</li>
+              <li>🔴 Rouge : Remplissage urgent (<10%)</li>
+            </ul>
+          </li>
+          <li><strong>Prochaine intervention</strong> : Date et type de la prochaine intervention planifiée</li>
+          <li><strong>Statistiques</strong> : Nombre total d'interventions et coûts</li>
+        </ul>
+        
+        <h4>Alertes critiques :</h4>
+        <p>Les alertes critiques s'affichent automatiquement en haut du tableau de bord pour attirer votre attention sur les actions urgentes à effectuer.</p>
+        
+        <h4>Actions rapides :</h4>
+        <p>Boutons d'accès direct aux principales fonctionnalités : gestion des interventions, consultation des alertes, modification des paramètres.</p>
+      `
+    },
+    {
+      id: 'parametres',
+      titre: 'Paramètres',
+      icon: '⚙️',
+      contenu: `
+        <h3>Configuration technique</h3>
+        <p>La page Paramètres vous permet de configurer et surveiller tous les aspects techniques de votre adoucisseur.</p>
+        
+        <h4>Paramètres d'affichage :</h4>
+        <ul>
+          <li><strong>Unité d'affichage</strong> : Litres, Gallons US, ou Mètres cubes</li>
+          <li><strong>Type de vanne</strong> : Standard 1/2 phases ou Filtre</li>
+          <li><strong>Type de régénération</strong> : Chronométrique, Hebdomadaire, ou Volumétrique</li>
+          <li><strong>Type de vanne série</strong> : 5600 (votre modèle)</li>
+        </ul>
+        
+        <h4>Paramètres de capacité :</h4>
+        <ul>
+          <li><strong>Capacité système</strong> : Volume total traité par cycle (L)</li>
+          <li><strong>Dureté d'entrée</strong> : Dureté de l'eau brute (°f)</li>
+          <li><strong>Type de réserve</strong> : Volume fixe (RC) ou Pourcentage (SF)</li>
+          <li><strong>Valeur de réserve</strong> : Volume ou pourcentage selon le type</li>
+          <li><strong>Forçage calendaire</strong> : Jours entre régénérations forcées</li>
+        </ul>
+        
+        <h4>Paramètres de régénération :</h4>
+        <ul>
+          <li><strong>Heure de régénération</strong> : Heure programmée (format 24h)</li>
+          <li><strong>Temps de détassage</strong> : Durée en minutes</li>
+          <li><strong>Temps d'aspiration</strong> : Durée en minutes</li>
+          <li><strong>Temps de rinçage</strong> : Durée en minutes</li>
+          <li><strong>Temps de remplissage</strong> : Durée en minutes</li>
+        </ul>
+        
+        <h4>Paramètres de compteur :</h4>
+        <ul>
+          <li><strong>Type de compteur</strong> : t0.7, P0.7, t1.0, P1.0, t1.5, P1.5, ou GEn</li>
+          <li><strong>Impulsions par litre</strong> : Nombre d'impulsions pour 1 litre</li>
+        </ul>
+        
+        <h4>Paramètres de réglage :</h4>
+        <ul>
+          <li><strong>Dureté de sortie</strong> : Dureté cible de l'eau adoucie (°f)</li>
+          <li><strong>Volume de résine</strong> : Volume de résine échangeuse d'ions (L)</li>
+          <li><strong>Capacité bac à sel</strong> : Capacité maximale du bac (kg)</li>
+          <li><strong>Consommation sel/régénération</strong> : Quantité de sel consommée (kg)</li>
+          <li><strong>Pression d'eau</strong> : Pression d'alimentation (bar)</li>
+          <li><strong>Température d'eau</strong> : Température de l'eau (°C)</li>
+          <li><strong>Débit d'eau</strong> : Débit nominal (L/min)</li>
+          <li><strong>Efficacité de régénération</strong> : Efficacité du processus (%)</li>
+        </ul>
+        
+        <h4>Historisation :</h4>
+        <p>Toutes les modifications sont automatiquement sauvegardées avec horodatage et commentaires. Vous pouvez consulter l'historique complet et restaurer d'anciennes configurations si nécessaire.</p>
+      `
+    },
+    {
+      id: 'interventions',
+      titre: 'Gestion des interventions',
+      icon: '📅',
+      contenu: `
+        <h3>Planification et suivi</h3>
+        <p>La gestion des interventions vous permet de planifier, suivre et documenter toutes les actions sur votre adoucisseur.</p>
+        
+        <h4>Types d'interventions :</h4>
+        <ul>
+          <li><strong>🧂 Remplissage</strong> : Ajout de sel dans le bac</li>
+          <li><strong>🔄 Régénération</strong> : Régénération manuelle ou automatique</li>
+          <li><strong>🔧 Maintenance</strong> : Maintenance préventive</li>
+          <li><strong>🧹 Entretien</strong> : Nettoyage et entretien général</li>
+          <li><strong>⚠️ Dépannage</strong> : Résolution de problèmes</li>
+          <li><strong>🔍 Inspection</strong> : Inspection technique</li>
+          <li><strong>💧 Nettoyage</strong> : Nettoyage spécifique du bac à sel</li>
+          <li><strong>🔄 Changement</strong> : Changement de résine</li>
+          <li><strong>⚖️ Calibration</strong> : Calibration du système</li>
+          <li><strong>🧪 Test</strong> : Test de fonctionnement</li>
+        </ul>
+        
+        <h4>Niveaux de priorité :</h4>
+        <ul>
+          <li><strong>🟢 Basse</strong> : Intervention non urgente</li>
+          <li><strong>🟡 Normale</strong> : Intervention standard</li>
+          <li><strong>🟠 Haute</strong> : Intervention importante</li>
+          <li><strong>🔴 Urgente</strong> : Intervention critique</li>
+        </ul>
+        
+        <h4>États d'intervention :</h4>
+        <ul>
+          <li><strong>🔵 Planifiée</strong> : Intervention programmée</li>
+          <li><strong>🟠 En cours</strong> : Intervention en cours d'exécution</li>
+          <li><strong>🟢 Terminée</strong> : Intervention achevée</li>
+          <li><strong>⚫ Annulée</strong> : Intervention annulée</li>
+          <li><strong>🔘 Reportée</strong> : Intervention reportée</li>
+        </ul>
+        
+        <h4>Fonctionnalités :</h4>
+        <ul>
+          <li><strong>Ajout d'intervention</strong> : Création d'une nouvelle intervention</li>
+          <li><strong>Modification</strong> : Modification des détails d'une intervention</li>
+          <li><strong>Suppression</strong> : Suppression d'une intervention</li>
+          <li><strong>Planification</strong> : Programmation d'interventions futures</li>
+          <li><strong>Suivi des coûts</strong> : Enregistrement des coûts associés</li>
+          <li><strong>Commentaires</strong> : Ajout de notes et observations</li>
+          <li><strong>Rappels</strong> : Système de rappels pour interventions planifiées</li>
+        </ul>
+        
+        <h4>Filtres et recherche :</h4>
+        <p>Filtrage par type, priorité, état, et recherche textuelle pour retrouver rapidement une intervention spécifique.</p>
+      `
+    },
+    {
+      id: 'alertes',
+      titre: 'Système d\'alertes',
+      icon: '📢',
+      contenu: `
+         <h3>Surveillance intelligente</h3>
+         <p>Le système d'alertes surveille automatiquement l'état de votre adoucisseur et vous informe des actions à effectuer.</p>
+         
+         <h4>Types d'alertes :</h4>
+         <ul>
+           <li><strong>🧂 Niveau de sel</strong> : Alertes basées sur le niveau de sel
+             <ul>
+               <li>Seuil critique : &lt; 10%</li>
+               <li>Seuil d'attention : &lt; 20%</li>
+             </ul>
+           </li>
+           <li><strong>🔄 Régénération</strong> : Problèmes de régénération</li>
+           <li><strong>🔧 Maintenance</strong> : Rappels de maintenance</li>
+           <li><strong>📅 Intervention</strong> : Interventions planifiées proches</li>
+           <li><strong>📊 Performance</strong> : Efficacité et coûts</li>
+           <li><strong>⚙️ Système</strong> : Problèmes généraux</li>
+         </ul>
+         
+         <h4>Niveaux de gravité :</h4>
+         <ul>
+           <li><strong>ℹ️ Information</strong> : Informations générales</li>
+           <li><strong>⚠️ Attention</strong> : Actions recommandées</li>
+           <li><strong>🚨 Critique</strong> : Actions urgentes requises</li>
+           <li><strong>🚨 Urgente</strong> : Actions immédiates</li>
+         </ul>
+         
+         <h4>Configuration des seuils :</h4>
+         <p>Vous pouvez personnaliser les seuils d'alertes selon vos besoins :</p>
+         <ul>
+           <li>Seuil critique niveau de sel (par défaut : 10%)</li>
+           <li>Seuil d'attention niveau de sel (par défaut : 20%)</li>
+           <li>Efficacité minimale de régénération (par défaut : 80%)</li>
+           <li>Coût maximum des interventions (par défaut : 200€)</li>
+         </ul>
+         
+         <h4>Gestion des alertes :</h4>
+         <ul>
+           <li><strong>Marquer comme lu</strong> : Indiquer qu'une alerte a été traitée</li>
+           <li><strong>Supprimer</strong> : Supprimer une alerte</li>
+           <li><strong>Tout marquer comme lu</strong> : Marquer toutes les alertes comme lues</li>
+           <li><strong>Supprimer les lues</strong> : Nettoyer les alertes traitées</li>
+         </ul>
+         
+         <h4>Filtres :</h4>
+         <p>Filtrage par type d'alerte, niveau de gravité, et état (lue/non lue).</p>
+       `
+    },
+    {
+      id: 'historique',
+      titre: 'Historique',
+      icon: '📈',
+      contenu: `
+        <h3>Suivi et traçabilité</h3>
+        <p>L'historique vous permet de consulter toutes les actions passées et de maintenir une traçabilité complète.</p>
+        
+        <h4>Historique des interventions :</h4>
+        <ul>
+          <li><strong>Interventions terminées</strong> : Toutes les interventions achevées</li>
+          <li><strong>Interventions planifiées</strong> : Interventions futures programmées</li>
+          <li><strong>Détails complets</strong> : Type, date, coût des produits</li>
+          <li><strong>Commentaires</strong> : Notes et observations</li>
+        </ul>
+        
+        <h4>Historique des paramètres :</h4>
+        <ul>
+          <li><strong>Modifications</strong> : Toutes les modifications de paramètres</li>
+          <li><strong>Horodatage</strong> : Date et heure de modification</li>
+          <li><strong>Commentaires</strong> : Raison de la modification</li>
+          <li><strong>Restauration</strong> : Possibilité de restaurer d'anciennes configurations</li>
+          <li><strong>Comparaison</strong> : Visualisation des différences entre versions</li>
+        </ul>
+        
+        <h4>Statistiques :</h4>
+        <ul>
+          <li><strong>Fréquence des interventions</strong> : Analyse des patterns</li>
+          <li><strong>Coûts cumulés</strong> : Suivi des dépenses</li>
+          <li><strong>Performance</strong> : Évolution de l'efficacité</li>
+          <li><strong>Consommation de sel</strong> : Suivi de la consommation</li>
+        </ul>
+      `
+    },
+    {
+      id: 'conseils',
+      titre: 'Conseils d\'utilisation',
+      icon: '💡',
+      contenu: `
+        <h3>Bonnes pratiques</h3>
+        <p>Voici quelques conseils pour optimiser l'utilisation de votre adoucisseur et de cette application.</p>
+        
+        <h4>Surveillance régulière :</h4>
+        <ul>
+          <li><strong>Vérifiez le niveau de sel</strong> : Au moins une fois par semaine</li>
+          <li><strong>Consultez les alertes</strong> : Régulièrement pour ne pas manquer d'actions importantes</li>
+          <li><strong>Planifiez les interventions</strong> : Anticipez les besoins de maintenance</li>
+          <li><strong>Documentez les interventions</strong> : Gardez une trace de toutes les actions</li>
+        </ul>
+        
+        <h4>Maintenance préventive :</h4>
+        <ul>
+          <li><strong>Remplissage préventif</strong> : Ne pas attendre que le niveau soit critique</li>
+          <li><strong>Inspection trimestrielle</strong> : Vérification générale du système</li>
+          <li><strong>Nettoyage du bac à sel</strong> : Éviter l'accumulation de dépôts</li>
+          <li><strong>Surveillance de l'efficacité</strong> : Maintenir une bonne performance</li>
+        </ul>
+        
+        <h4>Optimisation des paramètres :</h4>
+        <ul>
+          <li><strong>Adaptez les seuils</strong> : Ajustez les alertes selon votre usage</li>
+          <li><strong>Optimisez la régénération</strong> : Programmez aux heures creuses</li>
+          <li><strong>Surveillez la dureté</strong> : Ajustez selon la qualité de l'eau</li>
+          <li><strong>Calibrez régulièrement</strong> : Maintenez la précision du système</li>
+        </ul>
+        
+        <h4>Gestion des coûts :</h4>
+        <ul>
+          <li><strong>Suivez les dépenses</strong> : Enregistrez tous les coûts</li>
+          <li><strong>Analysez les tendances</strong> : Identifiez les optimisations possibles</li>
+          <li><strong>Planifiez le budget</strong> : Anticipez les dépenses de maintenance</li>
+          <li><strong>Optimisez la consommation</strong> : Réduisez les coûts d'exploitation</li>
+        </ul>
+        
+        <h4>En cas de problème :</h4>
+        <ul>
+          <li><strong>Consultez les alertes</strong> : Elles peuvent indiquer la cause</li>
+          <li><strong>Vérifiez l'historique</strong> : Comparez avec les périodes normales</li>
+          <li><strong>Documentez le problème</strong> : Ajoutez une intervention de dépannage</li>
+          <li><strong>Consultez la documentation</strong> : Pour résoudre les problèmes courants</li>
+        </ul>
+      `
+    },
+    {
+      id: 'technique',
+      titre: 'Informations techniques',
+      icon: '🔧',
+      contenu: `
+        <h3>Spécifications Fleck 5600 SXT</h3>
+        <p>Informations techniques détaillées sur votre adoucisseur Fleck 5600 SXT.</p>
+        
+        <h4>Caractéristiques générales :</h4>
+        <ul>
+          <li><strong>Modèle</strong> : Fleck 5600 SXT</li>
+          <li><strong>Type</strong> : Adoucisseur d'eau automatique</li>
+          <li><strong>Contrôle</strong> : Électronique avec affichage LCD</li>
+          <li><strong>Régénération</strong> : Chronométrique, volumétrique ou hebdomadaire</li>
+        </ul>
+        
+        <h4>Capacités :</h4>
+        <ul>
+          <li><strong>Débit nominal</strong> : 1,5 à 2,5 m³/h</li>
+          <li><strong>Pression de service</strong> : 1,5 à 8,5 bar</li>
+          <li><strong>Température d'eau</strong> : 2 à 50°C</li>
+          <li><strong>Capacité résine</strong> : 20 à 50 L selon configuration</li>
+          <li><strong>Capacité bac à sel</strong> : 50 à 200 kg selon modèle</li>
+        </ul>
+        
+        <h4>Consommation :</h4>
+        <ul>
+          <li><strong>Consommation sel</strong> : 2,5 à 5 kg par régénération</li>
+          <li><strong>Consommation eau</strong> : 100 à 200 L par régénération</li>
+          <li><strong>Durée régénération</strong> : 60 à 120 minutes</li>
+          <li><strong>Fréquence</strong> : Selon dureté et consommation</li>
+        </ul>
+        
+        <h4>Composants principaux :</h4>
+        <ul>
+          <li><strong>Vanne de contrôle</strong> : Fleck 5600 SXT</li>
+          <li><strong>Résine échangeuse</strong> : Résine cationique forte</li>
+          <li><strong>Bac à sel</strong> : Bac en polyéthylène</li>
+          <li><strong>Filtre</strong> : Filtre à sédiments intégré</li>
+          <li><strong>Bypass</strong> : Bypass manuel intégré</li>
+        </ul>
+        
+        <h4>Codes d'erreur courants :</h4>
+        <ul>
+          <li><strong>Erreur 1</strong> : Problème de pression d'eau</li>
+          <li><strong>Erreur 2</strong> : Problème de vanne</li>
+          <li><strong>Erreur 3</strong> : Problème de compteur</li>
+          <li><strong>Erreur 4</strong> : Problème de programmation</li>
+        </ul>
+        
+        <h4>Maintenance recommandée :</h4>
+        <ul>
+          <li><strong>Nettoyage bac à sel</strong> : Tous les 6 mois</li>
+          <li><strong>Inspection générale</strong> : Tous les 3 mois</li>
+          <li><strong>Changement résine</strong> : Tous les 5-10 ans</li>
+          <li><strong>Calibration</strong> : Annuellement</li>
+        </ul>
+      `
+    }
+  ];
+
+  const [activeSection, setActiveSection] = React.useState('presentation');
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
       {/* En-tête */}
       <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
         <CardContent>
@@ -1983,392 +2631,100 @@ function DocumentationPage() {
               <DescriptionIcon />
             </Avatar>
             <Typography variant="h4" sx={{ color: cardTitleColor, fontWeight: 700 }}>
-              Documentation Fleck 5600 SXT
+              Documentation complète
             </Typography>
           </Box>
-          
-          <Typography variant="h5" sx={{ color: textColor, mb: 2, fontWeight: 600 }}>
-            Guide complet d'utilisation et de programmation
+          <Typography sx={{ color: textColor, fontSize: '1.1rem' }}>
+            Guide complet d'utilisation de votre application de gestion d'adoucisseur Fleck 5600 SXT
           </Typography>
-          
-          <Typography variant="body1" sx={{ color: textColor, mb: 3 }}>
-            Documentation technique complète pour l'utilisation, la programmation et le dépannage de votre adoucisseur Fleck 5600 SXT.
-          </Typography>
-
-          {/* Boutons d'action */}
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              onClick={handleOpenPDF}
-              sx={{
-                bgcolor: mainColor,
-                color: '#fff',
-                px: 3,
-                py: 1.5,
-                '&:hover': { bgcolor: '#1565c0' }
-              }}
-            >
-              📖 Notice complète PDF
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleDownloadPDF}
-              sx={{
-                borderColor: accentColor,
-                color: accentColor,
-                px: 3,
-                py: 1.5,
-                '&:hover': { 
-                  borderColor: '#2e7d32',
-                  bgcolor: 'rgba(67, 160, 71, 0.1)'
-                }
-              }}
-            >
-              💾 Télécharger PDF
-            </Button>
-          </Box>
         </CardContent>
       </Card>
 
-      {/* Table des matières */}
+      {/* Navigation des sections */}
       <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 2, fontWeight: 600 }}>
-            📋 Table des matières
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="body2" sx={{ color: textColor }}>
-              • <strong>1. Fonctionnement général</strong> - Boutons, modes, affichage
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor }}>
-              • <strong>2. Programmation</strong> - Paramètres, codes, configuration
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor }}>
-              • <strong>3. Mode diagnostic</strong> - Codes d'erreur, dépannage
-            </Typography>
+          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 2 }}>Sections de la documentation</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            {sections.map((section) => (
+              <Button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                variant={activeSection === section.id ? 'contained' : 'outlined'}
+                sx={{
+                  bgcolor: activeSection === section.id ? accentColor : 'transparent',
+                  color: activeSection === section.id ? '#fff' : textColor,
+                  borderColor: activeSection === section.id ? accentColor : '#555',
+                  '&:hover': {
+                    bgcolor: activeSection === section.id ? '#2e7d32' : 'rgba(76, 175, 80, 0.1)',
+                    borderColor: accentColor
+                  },
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  py: 2
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span style={{ fontSize: '1.2rem' }}>{section.icon}</span>
+                  <span>{section.titre}</span>
+                </Box>
+              </Button>
+            ))}
           </Box>
         </CardContent>
       </Card>
 
-      {/* Section 1: Fonctionnement général */}
-      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
-        <CardContent>
-          <Typography variant="h5" sx={{ color: cardTitleColor, mb: 3, fontWeight: 700 }}>
-            1. Fonctionnement général
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              1.1 Boutons et icônes
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 2 }}>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Bouton de régénération :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Déclenche une régénération manuelle
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Boutons de réglage :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Pour ajuster l'heure, les valeurs et les paramètres
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              1.2 Modes de régénération
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Régénération chronométrique (tc) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Selon un intervalle de jours préréglé
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Régénération hebdomadaire (dAY) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Jours pré-définis dans la semaine
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Régénération volumétrique retardée (Fd) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Selon volume d'eau utilisé, démarrage à l'heure programmée
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  Régénération volumétrique immédiate (FI) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Dès que la capacité est épuisée
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              1.3 Cycles de régénération
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  BW (Backwash) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Détassage
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  BD (Brine draw) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Aspiration & rinçage lent
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  RR (Rapid rinse) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Rinçage rapide
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  BF (Brine fill) :
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor }}>
-                  Renvoi d'eau
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              1.4 Régénération manuelle
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              • <strong>Départ programmé :</strong> Appuyer puis relâcher le bouton de régénération
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              • <strong>Départ immédiat :</strong> Appuyer et maintenir 5 secondes
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Section 2: Programmation */}
-      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
-        <CardContent>
-          <Typography variant="h5" sx={{ color: cardTitleColor, mb: 3, fontWeight: 700 }}>
-            2. Programmation
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              2.1 Accès au mode programmation
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              1. Régler l'heure à 12:01 puis sortir
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              2. Appuyer 5 secondes sur + et - simultanément
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              3. Bouton de régénération pour naviguer, +/- pour modifier
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              4. Passer sur toutes les étapes et revenir en service pour valider
-            </Typography>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              2.2 Paramètres principaux
-            </Typography>
-            <TableContainer component={Paper} sx={{ bgcolor: '#2c3e50', boxShadow: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Paramètre</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Code</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Description</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>Type de régénération</TableCell>
-                    <TableCell sx={{ color: textColor }}>CT</TableCell>
-                    <TableCell sx={{ color: textColor }}>tc, dAY, Fd, FI</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>Capacité système</TableCell>
-                    <TableCell sx={{ color: textColor }}>C</TableCell>
-                    <TableCell sx={{ color: textColor }}>m³ x °tH</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>Dureté eau entrée</TableCell>
-                    <TableCell sx={{ color: textColor }}>H</TableCell>
-                    <TableCell sx={{ color: textColor }}>en °tH</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>Heure Régénération</TableCell>
-                    <TableCell sx={{ color: textColor }}>RT</TableCell>
-                    <TableCell sx={{ color: textColor }}>Format 24h</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Section 3: Diagnostic et dépannage */}
-      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
-        <CardContent>
-          <Typography variant="h5" sx={{ color: cardTitleColor, mb: 3, fontWeight: 700 }}>
-            3. Diagnostic et dépannage
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              3.1 Mode diagnostic
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-              Appuyer 5 secondes sur + et - depuis le service, puis utiliser +/- pour naviguer :
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  FR : Débit instantané
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  PF : Débit de pointe
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  HR : Heures depuis régénération
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  VU : Volume utilisé depuis régénération
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  RC : Capacité de réserve
-                </Typography>
-                <Typography variant="body2" sx={{ color: textColor, fontWeight: 600 }}>
-                  SV : Version carte
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              3.2 Codes d'erreur (ER)
-            </Typography>
-            <TableContainer component={Paper} sx={{ bgcolor: '#2c3e50', boxShadow: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Code</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Type</TableCell>
-                    <TableCell sx={{ color: cardTitleColor, fontWeight: 700 }}>Solution</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>ER0</TableCell>
-                    <TableCell sx={{ color: textColor }}>Capteur came</TableCell>
-                    <TableCell sx={{ color: textColor }}>Vérifier moteurs, connexions</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>ER1</TableCell>
-                    <TableCell sx={{ color: textColor }}>Position cycle</TableCell>
-                    <TableCell sx={{ color: textColor }}>Vérifier configuration</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>ER2</TableCell>
-                    <TableCell sx={{ color: textColor }}>Régénération</TableCell>
-                    <TableCell sx={{ color: textColor }}>Lancer régénération manuelle</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: textColor }}>ER3</TableCell>
-                    <TableCell sx={{ color: textColor }}>Mémoire</TableCell>
-                    <TableCell sx={{ color: textColor }}>Réinitialiser/programmer</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          <Box>
-            <Typography variant="h6" sx={{ color: accentColor, mb: 2, fontWeight: 600 }}>
-              3.3 Réinitialisation
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              • <strong>Partielle :</strong> En mode service, maintenir + et -
-            </Typography>
-            <Typography variant="body2" sx={{ color: textColor, mb: 1 }}>
-              • <strong>Totale :</strong> Débrancher, maintenir bouton régénération au re-branchement
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Conseils d'utilisation */}
+      {/* Contenu de la section active */}
       <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 3, fontWeight: 600 }}>
-            💡 Conseils d'utilisation
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <span style={{ fontSize: '2rem', marginRight: '1rem' }}>
+              {sections.find(s => s.id === activeSection)?.icon}
+            </span>
+            <Typography variant="h5" sx={{ color: cardTitleColor, fontWeight: 700 }}>
+              {sections.find(s => s.id === activeSection)?.titre}
+            </Typography>
+          </Box>
           
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-            <Box>
-              <Typography variant="subtitle1" sx={{ color: accentColor, mb: 1, fontWeight: 600 }}>
-                Entretien régulier
-              </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Vérifiez le niveau de sel régulièrement
-              </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Ajoutez du sel quand le niveau descend sous 20%
-              </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Utilisez du sel spécial adoucisseur
+          <Box 
+            sx={{ 
+              color: textColor,
+              '& h3': { color: cardTitleColor, mt: 3, mb: 2 },
+              '& h4': { color: cardTitleColor, mt: 2, mb: 1 },
+              '& p': { mb: 2, lineHeight: 1.6 },
+              '& ul': { mb: 2, pl: 3 },
+              '& li': { mb: 0.5, lineHeight: 1.5 },
+              '& strong': { color: accentColor }
+            }}
+            dangerouslySetInnerHTML={{ 
+              __html: sections.find(s => s.id === activeSection)?.contenu || '' 
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Informations rapides */}
+      <Card sx={{ bgcolor: '#2c3e50', boxShadow: 3, borderRadius: 3, mt: 4 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 2 }}>Informations rapides</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#34495e', borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Niveau de sel actuel</Typography>
+              <Typography variant="h4" sx={{ 
+                color: niveauSel <= 10 ? '#f44336' : niveauSel <= 20 ? '#ff9800' : '#4caf50' 
+              }}>
+                {niveauSel}%
               </Typography>
             </Box>
-            
-            <Box>
-              <Typography variant="subtitle1" sx={{ color: accentColor, mb: 1, fontWeight: 600 }}>
-                Maintenance
+            <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#34495e', borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Dureté d'entrée</Typography>
+              <Typography variant="h4" sx={{ color: textColor }}>
+                {parametres.dureteEntree} °f
               </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Changez la résine tous les 8-10 ans
-              </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Nettoyez le bac à sel annuellement
-              </Typography>
-              <Typography variant="body2" sx={{ color: textColor, mb: 2 }}>
-                • Vérifiez les paramètres de dureté
+            </Box>
+            <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#34495e', borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor }}>Capacité système</Typography>
+              <Typography variant="h4" sx={{ color: textColor }}>
+                {parametres.capaciteSysteme} L
               </Typography>
             </Box>
           </Box>
@@ -2586,6 +2942,456 @@ function HistoriqueParametresPage() {
   );
 }
 
+function AlertesPage() {
+  const { 
+    alertes, 
+    seuilsAlertes, 
+    setSeuilsAlertes,
+    marquerAlerteLue, 
+    supprimerAlerte, 
+    marquerToutesLues, 
+    supprimerAlertesLues,
+    getStatistiquesAlertes,
+    niveauSel,
+    parametres
+  } = useAppContext();
+
+  const [filtreType, setFiltreType] = React.useState('Tous');
+  const [filtreNiveau, setFiltreNiveau] = React.useState('Tous');
+  const [filtreLue, setFiltreLue] = React.useState('Toutes');
+  const [openConfig, setOpenConfig] = React.useState(false);
+
+  const stats = getStatistiquesAlertes();
+
+  const filtrerAlertes = () => {
+    return alertes.filter(alerte => {
+      const matchType = filtreType === 'Tous' || alerte.type === filtreType;
+      const matchNiveau = filtreNiveau === 'Tous' || alerte.niveau === filtreNiveau;
+      const matchLue = filtreLue === 'Toutes' || 
+        (filtreLue === 'Non lues' && !alerte.lue) || 
+        (filtreLue === 'Lues' && alerte.lue);
+      return matchType && matchNiveau && matchLue;
+    });
+  };
+
+  const alertesFiltrees = filtrerAlertes();
+
+  const getTypeIcon = (type) => {
+    const typeInfo = TYPES_ALERTES.find(t => t.value === type);
+    return typeInfo ? typeInfo.icon : '📋';
+  };
+
+  const getTypeColor = (type) => {
+    const typeInfo = TYPES_ALERTES.find(t => t.value === type);
+    return typeInfo ? typeInfo.couleur : '#666';
+  };
+
+  const getNiveauIcon = (niveau) => {
+    const niveauInfo = NIVEAUX_GRAVITE.find(n => n.value === niveau);
+    return niveauInfo ? niveauInfo.icone : 'ℹ️';
+  };
+
+  const getNiveauColor = (niveau) => {
+    const niveauInfo = NIVEAUX_GRAVITE.find(n => n.value === niveau);
+    return niveauInfo ? niveauInfo.couleur : '#666';
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
+      {/* En-tête avec statistiques */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar sx={{ bgcolor: mainColor, mr: 2 }}>
+                <WarningIcon />
+              </Avatar>
+              <Typography variant="h4" sx={{ color: cardTitleColor, fontWeight: 700 }}>
+                Centre d'Alertes
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => setOpenConfig(true)}
+                sx={{
+                  color: accentColor,
+                  borderColor: accentColor,
+                  '&:hover': { borderColor: '#2e7d32', bgcolor: 'rgba(76, 175, 80, 0.1)' }
+                }}
+              >
+                ⚙️ Configuration
+              </Button>
+              <Button
+                variant="contained"
+                onClick={marquerToutesLues}
+                sx={{
+                  bgcolor: mainColor,
+                  color: '#fff',
+                  '&:hover': { bgcolor: '#1565c0' }
+                }}
+              >
+                ✓ Tout marquer comme lu
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Statistiques rapides */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Total</Typography>
+              <Typography variant="h4" sx={{ color: textColor }}>{stats.total}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Non lues</Typography>
+              <Typography variant="h4" sx={{ color: '#ff9800' }}>{stats.nonLues}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Critiques</Typography>
+              <Typography variant="h4" sx={{ color: '#f44336' }}>{stats.critiques}</Typography>
+            </Card>
+            <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+              <Typography variant="h6" sx={{ color: cardTitleColor, mb: 1 }}>Niveau sel</Typography>
+              <Typography variant="h4" sx={{ 
+                color: niveauSel <= 10 ? '#f44336' : niveauSel <= 20 ? '#ff9800' : '#4caf50' 
+              }}>
+                {niveauSel}%
+              </Typography>
+            </Card>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Filtres */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3, mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ color: cardTitleColor, mb: 2 }}>Filtres</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Type d'alerte</InputLabel>
+              <Select
+                value={filtreType}
+                onChange={(e) => setFiltreType(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Tous">Tous les types</MenuItem>
+                {TYPES_ALERTES.map(type => (
+                  <MenuItem key={type.value} value={type.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span>{type.icon}</span>
+                      <span>{type.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>Niveau de gravité</InputLabel>
+              <Select
+                value={filtreNiveau}
+                onChange={(e) => setFiltreNiveau(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Tous">Tous les niveaux</MenuItem>
+                {NIVEAUX_GRAVITE.map(niveau => (
+                  <MenuItem key={niveau.value} value={niveau.value}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span>{niveau.icone}</span>
+                      <span>{niveau.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: cardTitleColor }}>État</InputLabel>
+              <Select
+                value={filtreLue}
+                onChange={(e) => setFiltreLue(e.target.value)}
+                sx={{ 
+                  color: textColor,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+                }}
+              >
+                <MenuItem value="Toutes">Toutes les alertes</MenuItem>
+                <MenuItem value="Non lues">Non lues</MenuItem>
+                <MenuItem value="Lues">Lues</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Liste des alertes */}
+      <Card sx={{ bgcolor: cardColor, boxShadow: 3, borderRadius: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" sx={{ color: cardTitleColor }}>
+              Alertes ({alertesFiltrees.length})
+            </Typography>
+            {alertes.filter(a => a.lue).length > 0 && (
+              <Button
+                variant="outlined"
+                onClick={supprimerAlertesLues}
+                sx={{
+                  color: '#e74c3c',
+                  borderColor: '#e74c3c',
+                  '&:hover': { borderColor: '#c0392b', bgcolor: 'rgba(231, 76, 60, 0.1)' }
+                }}
+              >
+                🗑️ Supprimer les lues
+              </Button>
+            )}
+          </Box>
+
+          {alertesFiltrees.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography sx={{ color: textColor, fontSize: '1.2rem' }}>
+                🎉 Aucune alerte à afficher !
+              </Typography>
+              <Typography sx={{ color: '#888', mt: 1 }}>
+                Toutes les alertes sont gérées ou les filtres sont trop restrictifs.
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {alertesFiltrees.map((alerte) => (
+                <Card 
+                  key={alerte.id} 
+                  sx={{ 
+                    bgcolor: alerte.lue ? '#2c3e50' : '#34495e',
+                    borderLeft: 4,
+                    borderColor: getNiveauColor(alerte.niveau),
+                    transition: 'all 0.3s ease',
+                    '&:hover': { 
+                      transform: 'translateX(5px)',
+                      boxShadow: 3
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span style={{ fontSize: '1.5rem' }}>{getTypeIcon(alerte.type)}</span>
+                            <Typography variant="h6" sx={{ color: cardTitleColor }}>
+                              {alerte.titre}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span style={{ fontSize: '1.2rem' }}>{getNiveauIcon(alerte.niveau)}</span>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                color: getNiveauColor(alerte.niveau),
+                                fontWeight: 600,
+                                px: 1,
+                                py: 0.5,
+                                borderRadius: 1,
+                                bgcolor: getNiveauColor(alerte.niveau) + '20'
+                              }}
+                            >
+                              {NIVEAUX_GRAVITE.find(n => n.value === alerte.niveau)?.label}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        
+                        <Typography sx={{ color: textColor, mb: 2 }}>
+                          {alerte.message}
+                        </Typography>
+
+                        {alerte.actionRequise && (
+                          <Box sx={{ 
+                            bgcolor: '#2c3e50', 
+                            p: 2, 
+                            borderRadius: 1, 
+                            border: 1, 
+                            borderColor: accentColor,
+                            mb: 2
+                          }}>
+                            <Typography variant="body2" sx={{ color: accentColor, fontWeight: 600, mb: 1 }}>
+                              Action requise :
+                            </Typography>
+                            <Typography sx={{ color: textColor }}>
+                              {alerte.action}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        <Typography variant="body2" sx={{ color: '#888' }}>
+                          {formatDate(alerte.date)}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                        {!alerte.lue && (
+                          <IconButton
+                            onClick={() => marquerAlerteLue(alerte.id)}
+                            sx={{ 
+                              color: accentColor, 
+                              '&:hover': { bgcolor: '#2e7d32' },
+                              bgcolor: 'rgba(76, 175, 80, 0.1)'
+                            }}
+                          >
+                            ✓
+                          </IconButton>
+                        )}
+                        <IconButton
+                          onClick={() => supprimerAlerte(alerte.id)}
+                          sx={{ 
+                            color: '#e74c3c', 
+                            '&:hover': { bgcolor: '#c0392b' },
+                            bgcolor: 'rgba(231, 76, 60, 0.1)'
+                          }}
+                        >
+                          🗑️
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialogue de configuration des seuils */}
+      <Dialog open={openConfig} onClose={() => setOpenConfig(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ bgcolor: cardColor, color: cardTitleColor }}>
+          ⚙️ Configuration des seuils d'alertes
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: cardColor }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            <Typography variant="h6" sx={{ color: cardTitleColor }}>
+              Seuils de niveau de sel (%)
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                label="Seuil critique"
+                type="number"
+                value={seuilsAlertes.niveauSelCritique}
+                onChange={(e) => setSeuilsAlertes(prev => ({ 
+                  ...prev, 
+                  niveauSelCritique: parseInt(e.target.value) 
+                }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+              <TextField
+                label="Seuil d'attention"
+                type="number"
+                value={seuilsAlertes.niveauSelAttention}
+                onChange={(e) => setSeuilsAlertes(prev => ({ 
+                  ...prev, 
+                  niveauSelAttention: parseInt(e.target.value) 
+                }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+            </Box>
+
+            <Typography variant="h6" sx={{ color: cardTitleColor }}>
+              Seuils de performance
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                label="Efficacité minimale (%)"
+                type="number"
+                value={seuilsAlertes.efficaciteMinimale}
+                onChange={(e) => setSeuilsAlertes(prev => ({ 
+                  ...prev, 
+                  efficaciteMinimale: parseInt(e.target.value) 
+                }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+              <TextField
+                label="Coût max intervention (€)"
+                type="number"
+                value={seuilsAlertes.coutMaxIntervention}
+                onChange={(e) => setSeuilsAlertes(prev => ({ 
+                  ...prev, 
+                  coutMaxIntervention: parseInt(e.target.value) 
+                }))}
+                InputLabelProps={{ style: { color: cardTitleColor } }}
+                InputProps={{ style: { color: textColor } }}
+                sx={{ input: { color: textColor } }}
+                fullWidth
+              />
+            </Box>
+
+            <Typography variant="h6" sx={{ color: cardTitleColor }}>
+              État actuel du système
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+              <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+                <Typography variant="body2" sx={{ color: cardTitleColor }}>Niveau de sel</Typography>
+                <Typography variant="h6" sx={{ 
+                  color: niveauSel <= seuilsAlertes.niveauSelCritique ? '#f44336' : 
+                         niveauSel <= seuilsAlertes.niveauSelAttention ? '#ff9800' : '#4caf50' 
+                }}>
+                  {niveauSel}%
+                </Typography>
+              </Card>
+              <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+                <Typography variant="body2" sx={{ color: cardTitleColor }}>Efficacité régénération</Typography>
+                <Typography variant="h6" sx={{ 
+                  color: parametres.efficaciteRegeneration < seuilsAlertes.efficaciteMinimale ? '#ff9800' : '#4caf50' 
+                }}>
+                  {parametres.efficaciteRegeneration}%
+                </Typography>
+              </Card>
+              <Card sx={{ bgcolor: '#2c3e50', p: 2 }}>
+                <Typography variant="body2" sx={{ color: cardTitleColor }}>Alertes actives</Typography>
+                <Typography variant="h6" sx={{ color: stats.nonLues > 0 ? '#ff9800' : '#4caf50' }}>
+                  {stats.nonLues}
+                </Typography>
+              </Card>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: cardColor }}>
+          <Button onClick={() => setOpenConfig(false)} sx={{ color: textColor }}>
+            Fermer
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
 function PageContent({ page }) {
   switch (page) {
     case 'dashboard':
@@ -2602,7 +3408,7 @@ function PageContent({ page }) {
     case 'historique':
       return <HistoriquePage />;
     case 'alertes':
-      return <GenericCardPage title="Alertes" icon={<NotificationsIcon />} />;
+      return <AlertesPage />;
     case 'documentation':
       return <DocumentationPage />;
     case 'historique-parametres':
@@ -2707,6 +3513,8 @@ function AppContent() {
 }
 
 export default function App() {
+  console.log('🚀 Application Adoucisseur 1.0 en cours de chargement...');
+  
   return (
     <AppProvider>
       <AppContent />
